@@ -10,7 +10,7 @@ type Group struct {
 	GroupName string
 }
 
-type GroupMember  struct {
+type GroupMember struct {
 	GroupID int
 	UserID int
 }
