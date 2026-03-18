@@ -21,6 +21,7 @@ type Expense struct {
 	Description string
 	PaidByUserID int
 	GroupID int
+	CreatedAt string
 }
 
 type Split struct {
