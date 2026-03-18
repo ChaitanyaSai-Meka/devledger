@@ -1,14 +1,14 @@
-CREATE TABLE Users (
+CREATE TABLE IF NOT EXISTS Users (
     UserID INTEGER PRIMARY KEY,
     UserName TEXT  NOT NULL
 );
 
-CREATE TABLE Groups (
+CREATE TABLE IF NOT EXISTS Groups (
     GroupID INTEGER PRIMARY KEY,
     GroupName TEXT  NOT NULL
 );
 
-CREATE TABLE GroupMember (
+CREATE TABLE IF NOT EXISTS GroupMembers (
     GroupID INTEGER,   
     UserID INTEGER,   
     PRIMARY KEY (GroupID , UserID),
@@ -16,7 +16,7 @@ CREATE TABLE GroupMember (
     FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE RESTRICT
 );
 
-CREATE TABLE Expense (
+CREATE TABLE IF NOT EXISTS Expenses (
 	ExpenseID INTEGER PRIMARY KEY,
 	Amount INTEGER NOT NULL CHECK (Amount > 0),
 	Description TEXT NOT NULL,
@@ -27,13 +27,17 @@ CREATE TABLE Expense (
     FOREIGN KEY (GroupID) REFERENCES Groups(GroupID) ON DELETE CASCADE
 );
 
-CREATE TABLE Split (
+CREATE TABLE IF NOT EXISTS Splits (
     ExpenseID INTEGER,
 	UserID INTEGER,
 	Amount INTEGER NOT NULL CHECK (Amount > 0),
     PRIMARY KEY (ExpenseID, UserID),
 	Settled BOOLEAN NOT NULL DEFAULT 0,
-    FOREIGN KEY (ExpenseID) REFERENCES Expense(ExpenseID) ON DELETE CASCADE,
+    FOREIGN KEY (ExpenseID) REFERENCES Expenses(ExpenseID) ON DELETE CASCADE,
     FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE RESTRICT
 );
 
+CREATE INDEX IF NOT EXISTS idx_expenses_group ON Expenses(GroupID);
+CREATE INDEX IF NOT EXISTS idx_expenses_paid_by ON Expenses(PaidByUserID);
+CREATE INDEX IF NOT EXISTS idx_groupmembers_user ON GroupMembers(UserID);
+CREATE INDEX IF NOT EXISTS idx_splits_user ON Splits(UserID);
