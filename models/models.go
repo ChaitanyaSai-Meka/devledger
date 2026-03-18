@@ -1,31 +1,31 @@
 package models
 
 type User struct {
-	UserID string
+	UserID int
 	UserName string
 }
 
 type Group struct {
-	GroupID string
+	GroupID int
 	GroupName string
 }
 
 type GroupMember  struct {
-	GroupID string
-	UserID string
+	GroupID int
+	UserID int
 }
 
 type Expense struct {
-	ExpenseID string
+	ExpenseID int
 	Amount float32
 	Description string
-	PaidByUserID string
-	GroupID string
+	PaidByUserID int
+	GroupID int
 }
 
 type Split struct {
-	ExpenseID string
-	UserID string
+	ExpenseID int
+	UserID int
 	Amount float32
 	Settled bool
 }
