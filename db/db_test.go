@@ -10,8 +10,8 @@ func TestConnectDB(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConnectDB failed: %v", err)
 	}
-	defer conn.Close()
 	defer os.Remove("./devledger.db")
+	defer conn.Close()
 }
 
 func TestForeignKeysEnabled(t *testing.T) {
@@ -19,8 +19,8 @@ func TestForeignKeysEnabled(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConnectDB failed: %v", err)
 	}
-	defer conn.Close()
 	defer os.Remove("./devledger.db")
+	defer conn.Close()
 
 	var enabled int
 	err = conn.QueryRow("PRAGMA foreign_keys;").Scan(&enabled)
@@ -38,8 +38,8 @@ func TestUsersTableCreated(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConnectDB failed: %v", err)
 	}
-	defer conn.Close()
 	defer os.Remove("./devledger.db")
+	defer conn.Close()
 
 	var count int
 	query := `

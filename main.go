@@ -1,13 +1,15 @@
 package main
 
 import (
+    "log"
 	"github.com/ChaitanyaSai-Meka/devledger/db"
 )
 
 func main() {
-    db, err := db.ConnectDB()
+    conn, err := db.ConnectDB()
     if err != nil {
-        panic(err)
+        log.SetFlags(0)
+        log.Fatalf("Error: failed to connect to database: %v", err)
     }
-    defer db.Close()
+    defer conn.Close()
 }
