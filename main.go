@@ -1,7 +1,15 @@
 package main
 
-import "fmt"
+import (
+    "log"
+	"github.com/ChaitanyaSai-Meka/devledger/db"
+)
 
 func main() {
-    fmt.Println("Hello, Go ")
+    conn, err := db.ConnectDB()
+    if err != nil {
+        log.SetFlags(0)
+        log.Fatalf("Error: failed to connect to database: %v", err)
+    }
+    defer conn.Close()
 }
