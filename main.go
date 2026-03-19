@@ -1,7 +1,13 @@
 package main
 
-import "fmt"
+import (
+	"github.com/ChaitanyaSai-Meka/devledger/db"
+)
 
 func main() {
-    fmt.Println("Hello, Go ")
+    db, err := db.ConnectDB()
+    if err != nil {
+        panic(err)
+    }
+    defer db.Close()
 }
