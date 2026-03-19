@@ -12,23 +12,23 @@ import (
 var schemaSQL string
 
 func ConnectDB()(*sql.DB, error){
-	db, err := sql.Open("sqlite","./devledger.db")
+	conn, err := sql.Open("sqlite","./devledger.db")
 
 	if err != nil{
 		return nil,err
 	}
 
-	_,err=db.Exec("PRAGMA foreign_keys = ON;")
+	_,err=conn.Exec("PRAGMA foreign_keys = ON;")
 	if err != nil {
-		db.Close()
+		conn.Close()
 		return nil,err
 	}
-	_, err = db.Exec(schemaSQL)
+	_, err = conn.Exec(schemaSQL)
 	if err != nil {
-		db.Close()
+		conn.Close()
 		return nil,err
 	}
 
 	fmt.Println("Database connected and schema created successfully.")
-	return db,nil
+	return conn,nil
 }
