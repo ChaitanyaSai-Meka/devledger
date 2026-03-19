@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"database/sql"
 	_ "embed"
 	_ "modernc.org/sqlite"
@@ -29,6 +28,5 @@ func ConnectDB()(*sql.DB, error){
 		return nil,err
 	}
 
-	fmt.Println("Database connected and schema created successfully.")
 	return conn,nil
 }
