@@ -1,2 +1,3 @@
 need to add update user featrure 
 need to remove the unique username constrain and come up with a better logic for it
+service layer is needed to handle the sql.errnorows properly and userfriendly
