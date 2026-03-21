@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"errors"
 	"github.com/ChaitanyaSai-Meka/devledger/models"
 )
 
@@ -68,7 +67,7 @@ func SettleSplit(db *sql.DB, expenseID int, userID int) error {
 		return err
 	}
 	if rowsAffected == 0 {
-		return errors.New("no split found to settle")
+		return sql.ErrNoRows
 	}
 	return nil
 }

@@ -5,3 +5,5 @@
 - Need to add partial payments in the upcoming version
 - Edit expense description
 - Edit expense amount (with automatic split recalculation)
+- Need to add migration for the schema's
+- Need to add Custom Errors
