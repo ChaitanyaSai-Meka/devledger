@@ -78,18 +78,3 @@ func DeleteUserByID(db *sql.DB, userID int) error {
 	}
 	return nil
 }
-
-func DeleteUserByName(db *sql.DB, username string) error {
-	result, err := db.Exec("DELETE FROM Users WHERE UserName = ?", username)
-	if err != nil {
-		return err
-	}
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rowsAffected == 0 {
-		return sql.ErrNoRows
-	}
-	return nil
-}
