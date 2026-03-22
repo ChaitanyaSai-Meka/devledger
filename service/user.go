@@ -29,7 +29,7 @@ func DeleteUser(db *sql.DB, username string) error {
 	}
 	user, err := repository.GetUserByName(db, username)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return fmt.Errorf("user '%s' not found", username)
 		}
 		return err
@@ -47,4 +47,23 @@ func GetAllUsers(db *sql.DB) ([]models.User, error) {
 		return nil, err
 	}
 	return users, nil
+}
+
+func GetUserGroups(db *sql.DB, username string)([]models.Group, error){
+	username = strings.TrimSpace(username)
+	if username == "" {
+		return nil, errors.New("username cannot be empty")
+	}
+	user, err := repository.GetUserByName(db, username)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("user '%s' not found", username)
+		}
+		return nil,err
+	}
+	groups, err := repository.GetGroupsByUserID(db, user.UserID)
+	if err != nil {
+		return nil,err
+	}
+	return groups, nil
 }
