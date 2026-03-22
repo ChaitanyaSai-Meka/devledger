@@ -5,12 +5,17 @@ import (
 	"github.com/ChaitanyaSai-Meka/devledger/models"
 )
 
-func CreateExpense(db *sql.DB, expense models.Expense) error {
-	_, err := db.Exec("INSERT INTO Expenses (Amount, Description, PaidByUserID, GroupID) VALUES (?,?,?,?)", expense.Amount, expense.Description, expense.PaidByUserID, expense.GroupID)
+func CreateExpense(db *sql.DB, expense models.Expense) (int64,error) {
+	result, err := db.Exec("INSERT INTO Expenses (Amount, Description, PaidByUserID, GroupID) VALUES (?,?,?,?)", expense.Amount, expense.Description, expense.PaidByUserID, expense.GroupID)
 	if err != nil {
-		return err
+		return 0,err
 	}
-	return nil
+
+	id,err := result.LastInsertId()
+	if err!= nil {
+		return 0,err
+	}
+	return id,nil
 }
 
 func GetExpenseByID(db *sql.DB, expenseID int) (models.Expense, error) {

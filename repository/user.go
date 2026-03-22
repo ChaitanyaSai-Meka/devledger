@@ -71,6 +71,9 @@ func DeleteUserByID(db *sql.DB, userID int) error {
 	}
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
+		if strings.Contains(err.Error(), "FOREIGN KEY constraint failed") {
+			return errors.New("cannot delete user with unsettled debts")
+		}
 		return err
 	}
 	if rowsAffected == 0 {
