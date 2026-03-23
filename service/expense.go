@@ -3,8 +3,8 @@ package service
 import (
 	"database/sql"
 	"errors"
-	"strings"
 	"fmt"
+	"strings"
 
 	"github.com/ChaitanyaSai-Meka/devledger/models"
 	"github.com/ChaitanyaSai-Meka/devledger/repository"
@@ -14,47 +14,47 @@ func AddExpense(db *sql.DB, expense models.Expense) error {
 
 }
 
-func ListExpensesByGroup(db *sql.DB, groupname string) ([]models.Expense,error){
-	groupname =strings.TrimSpace(groupname)
+func ListExpensesByGroup(db *sql.DB, groupname string) ([]models.Expense, error) {
+	groupname = strings.TrimSpace(groupname)
 	if groupname == "" {
 		return nil, errors.New("group name cannot be empty")
 	}
-	group,err := repository.GetGroupByName(db,groupname)
+	group, err := repository.GetGroupByName(db, groupname)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("group '%s' not found", groupname)
 		}
-		return nil,err
+		return nil, err
 	}
 	expenses, err := repository.GetExpensesByGroupID(db, group.GroupID)
-	if err !=nil{
-		return nil,err
+	if err != nil {
+		return nil, err
 	}
-	return expenses,nil
+	return expenses, nil
 }
 
-func ListExpensesByUser(db *sql.DB, username string) ([]models.Expense,error) {
-	username =strings.TrimSpace(username)
+func ListExpensesByUser(db *sql.DB, username string) ([]models.Expense, error) {
+	username = strings.TrimSpace(username)
 	if username == "" {
 		return nil, errors.New("username cannot be empty")
 	}
-	user,err := repository.GetUserByName(db,username)
+	user, err := repository.GetUserByName(db, username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("user '%s' not found", username)
 		}
-		return nil,err
+		return nil, err
 	}
 	expenses, err := repository.GetExpensesByUserID(db, user.UserID)
-	if err !=nil{
-		return nil,err
+	if err != nil {
+		return nil, err
 	}
-	return expenses,nil
+	return expenses, nil
 }
 
 func DeleteExpense(db *sql.DB, expenseID int) error {
-	err:=repository.DeleteExpenseByID(db, expenseID)
-	if err != nil{
+	err := repository.DeleteExpenseByID(db, expenseID)
+	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return fmt.Errorf("expense with ID '%d' not found", expenseID)
 		}
@@ -63,11 +63,11 @@ func DeleteExpense(db *sql.DB, expenseID int) error {
 	return nil
 }
 
-func SettleExpense(db *sql.DB,expenseID int,username string) error {
+func SettleExpense(db *sql.DB, expenseID int, username string) error {
 	username = strings.TrimSpace(username)
 	if username == "" {
 		return errors.New("username cannot be empty")
-	}	
+	}
 	user, err := repository.GetUserByName(db, username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -85,25 +85,64 @@ func SettleExpense(db *sql.DB,expenseID int,username string) error {
 	return nil
 }
 
-func ListUnsettledSplits(db *sql.DB, username string) ([]models.Split, error){
-	username =strings.TrimSpace(username)
+func ListUnsettledSplits(db *sql.DB, username string) ([]models.Split, error) {
+	username = strings.TrimSpace(username)
 	if username == "" {
 		return nil, errors.New("username cannot be empty")
 	}
-	user,err := repository.GetUserByName(db,username)
+	user, err := repository.GetUserByName(db, username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("user '%s' not found", username)
 		}
-		return nil,err
+		return nil, err
 	}
 	splits, err := repository.GetUnsettledSplitsByUserID(db, user.UserID)
-	if err !=nil{
-		return nil,err
+	if err != nil {
+		return nil, err
 	}
-	return splits,nil
+	return splits, nil
 }
 
-func GetExpenseInDetail(db *sql.DB, expenseID int) (models.ExpenseDetail, error){
-
+func GetExpenseInDetail(db *sql.DB, expenseID int) (models.ExpenseDetail, error) {
+	expense, err := repository.GetExpenseByID(db, expenseID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.ExpenseDetail{}, fmt.Errorf("expense with ID %d not found", expenseID)
+		}
+		return models.ExpenseDetail{}, err
+	}
+	user, err := repository.GetUserByID(db, expense.PaidByUserID)
+	if err != nil {
+		return models.ExpenseDetail{}, err
+	}
+	group, err := repository.GetGroupByID(db, expense.GroupID)
+	if err != nil {
+		return models.ExpenseDetail{}, err
+	}
+	splits, err := repository.GetSplitsByExpenseID(db, expenseID)
+	if err != nil {
+		return models.ExpenseDetail{}, err
+	}
+	splitsDetails := []models.SplitDetail{}
+	for _, split := range splits {
+		splitUser, err := repository.GetUserByID(db, split.UserID)
+		if err != nil {
+			return models.ExpenseDetail{}, err
+		}
+		splitsDetails = append(splitsDetails, models.SplitDetail{
+			UserName: splitUser.UserName,
+			Amount:   split.Amount,
+			Settled:  split.Settled,
+		})
+	}
+	details := models.ExpenseDetail{
+		Description: expense.Description,
+		Amount:      expense.Amount,
+		PaidBy:      user.UserName,
+		GroupName:   group.GroupName,
+		CreatedAt:   expense.CreatedAt,
+		Splits:      splitsDetails,
+	}
+	return details, nil
 }
