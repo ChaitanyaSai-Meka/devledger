@@ -86,7 +86,7 @@ func AddExpense(db *sql.DB, groupname string, description string, paidbyusername
 			ExpenseID: expenseID,
 			UserID:    member.UserID,
 			Amount:    amount,
-			Settled:   false,
+			Settled:   member.UserID == user.UserID,
 		}
 		err = repository.CreateSplit(tx, split)
 		if err != nil {
@@ -134,7 +134,7 @@ func ListExpensesByUser(db *sql.DB, username string) ([]models.Expense, error) {
 	return expenses, nil
 }
 
-func DeleteExpense(db *sql.DB, expenseID int) error {
+func DeleteExpense(db *sql.DB, expenseID int64) error {
 	err := repository.DeleteExpenseByID(db, expenseID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -145,7 +145,7 @@ func DeleteExpense(db *sql.DB, expenseID int) error {
 	return nil
 }
 
-func SettleExpense(db *sql.DB, expenseID int, username string) error {
+func SettleExpense(db *sql.DB, expenseID int64, username string) error {
 	username = strings.TrimSpace(username)
 	if username == "" {
 		return errors.New("username cannot be empty")
@@ -186,7 +186,7 @@ func ListUnsettledSplits(db *sql.DB, username string) ([]models.Split, error) {
 	return splits, nil
 }
 
-func GetExpenseInDetail(db *sql.DB, expenseID int) (models.ExpenseDetail, error) {
+func GetExpenseInDetail(db *sql.DB, expenseID int64) (models.ExpenseDetail, error) {
 	expense, err := repository.GetExpenseByID(db, expenseID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

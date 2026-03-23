@@ -5,20 +5,20 @@ import (
 	"github.com/ChaitanyaSai-Meka/devledger/models"
 )
 
-func CreateExpense(tx *sql.Tx, expense models.Expense) (int64,error) {
+func CreateExpense(tx *sql.Tx, expense models.Expense) (int64, error) {
 	result, err := tx.Exec("INSERT INTO Expenses (Amount, Description, PaidByUserID, GroupID) VALUES (?,?,?,?)", expense.Amount, expense.Description, expense.PaidByUserID, expense.GroupID)
 	if err != nil {
-		return 0,err
+		return 0, err
 	}
 
-	id,err := result.LastInsertId()
-	if err!= nil {
-		return 0,err
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
 	}
-	return id,nil
+	return id, nil
 }
 
-func GetExpenseByID(db *sql.DB, expenseID int) (models.Expense, error) {
+func GetExpenseByID(db *sql.DB, expenseID int64) (models.Expense, error) {
 	var expense models.Expense
 	err := db.QueryRow(
 		"SELECT ExpenseID, Amount, Description, PaidByUserID, GroupID, CreatedAt FROM Expenses WHERE ExpenseID = ?",
@@ -74,7 +74,7 @@ func GetExpensesByUserID(db *sql.DB, userID int) ([]models.Expense, error) {
 	return expenses, nil
 }
 
-func DeleteExpenseByID(db *sql.DB, expenseID int) error {
+func DeleteExpenseByID(db *sql.DB, expenseID int64) error {
 	result, err := db.Exec("DELETE FROM Expenses WHERE ExpenseID = ?", expenseID)
 	if err != nil {
 		return err

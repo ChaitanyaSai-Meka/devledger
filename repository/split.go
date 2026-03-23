@@ -13,7 +13,7 @@ func CreateSplit(tx *sql.Tx, split models.Split) error {
 	return nil
 }
 
-func GetSplitsByExpenseID(db *sql.DB, expenseID int) ([]models.Split, error) {
+func GetSplitsByExpenseID(db *sql.DB, expenseID int64) ([]models.Split, error) {
 	rows, err := db.Query("SELECT ExpenseID, UserID, Amount, Settled FROM Splits WHERE ExpenseID = ?", expenseID)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func GetUnsettledSplitsByUserID(db *sql.DB, userID int) ([]models.Split, error) 
 	return splits, nil
 }
 
-func SettleSplit(db *sql.DB, expenseID int, userID int) error {
+func SettleSplit(db *sql.DB, expenseID int64, userID int) error {
 	result, err := db.Exec("UPDATE Splits SET Settled = 1 WHERE ExpenseID = ? AND UserID = ?", expenseID, userID)
 	if err != nil {
 		return err
