@@ -10,11 +10,11 @@ import (
 	"github.com/ChaitanyaSai-Meka/devledger/repository"
 )
 
-func AddExpense(db *sql.DB, groupname string, description string, paidbyusername string, Amount int64) error {
+func AddExpense(db *sql.DB, groupname string, description string, paidbyusername string, amount int64) error {
 	groupname = strings.TrimSpace(groupname)
 	description = strings.TrimSpace(description)
 	paidbyusername = strings.TrimSpace(paidbyusername)
-	if Amount <= 0 {
+	if amount <= 0 {
 		return errors.New("amount must be greater than zero")
 	}
 	if groupname == "" {
@@ -59,12 +59,12 @@ func AddExpense(db *sql.DB, groupname string, description string, paidbyusername
 	}
 	expense := models.Expense{
 		Description:  description,
-		Amount:       Amount,
+		Amount:       amount,
 		PaidByUserID: user.UserID,
 		GroupID:      group.GroupID,
 	}
-	splitAmount := Amount / int64(len(members))
-	reminder := Amount % int64(len(members))
+	splitAmount := amount / int64(len(members))
+	remainder := amount % int64(len(members))
 
 	tx, err := db.Begin()
 	if err != nil {
@@ -80,7 +80,7 @@ func AddExpense(db *sql.DB, groupname string, description string, paidbyusername
 	for _, member := range members {
 		amount := splitAmount
 		if member.UserID == user.UserID {
-			amount += reminder
+			amount += remainder
 		}
 		split := models.Split{
 			ExpenseID: expenseID,

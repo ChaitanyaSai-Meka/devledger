@@ -3,19 +3,19 @@ package service
 import (
 	"database/sql"
 	"errors"
-	"strings"
 	"fmt"
+	"strings"
 
-	"github.com/ChaitanyaSai-Meka/devledger/repository"
 	"github.com/ChaitanyaSai-Meka/devledger/models"
+	"github.com/ChaitanyaSai-Meka/devledger/repository"
 )
 
 func CreateGroup(db *sql.DB, groupname string) error {
-	groupname =strings.TrimSpace(groupname)
+	groupname = strings.TrimSpace(groupname)
 	if groupname == "" {
-		return  errors.New("group name cannot be empty")
+		return errors.New("group name cannot be empty")
 	}
-	err := repository.CreateGroup(db,groupname)
+	err := repository.CreateGroup(db, groupname)
 	if err != nil {
 		return err
 	}
@@ -34,17 +34,17 @@ func DeleteGroup(db *sql.DB, groupname string) error {
 		}
 		return err
 	}
-	err = repository.DeleteGroupByID(db,groups.GroupID)
-	if err !=nil {
+	err = repository.DeleteGroupByID(db, groups.GroupID)
+	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func AddMemberToGroup( db *sql.DB, groupname string, username string) error {
+func AddMemberToGroup(db *sql.DB, groupname string, username string) error {
 	groupname = strings.TrimSpace(groupname)
 	username = strings.TrimSpace(username)
-	
+
 	if groupname == "" {
 		return errors.New("group name cannot be empty")
 	}
@@ -72,10 +72,10 @@ func AddMemberToGroup( db *sql.DB, groupname string, username string) error {
 	return nil
 }
 
-func RemoveMemberFromGroup( db *sql.DB, groupname string, username string) error {
+func RemoveMemberFromGroup(db *sql.DB, groupname string, username string) error {
 	groupname = strings.TrimSpace(groupname)
 	username = strings.TrimSpace(username)
-	
+
 	if groupname == "" {
 		return errors.New("group name cannot be empty")
 	}
@@ -98,7 +98,7 @@ func RemoveMemberFromGroup( db *sql.DB, groupname string, username string) error
 	}
 	err = repository.RemoveMember(db, group.GroupID, user.UserID)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows){
+		if errors.Is(err, sql.ErrNoRows) {
 			return fmt.Errorf("user '%s' is not a member of group '%s'", username, groupname)
 		}
 		return err
@@ -125,10 +125,10 @@ func ListGroupMembers(db *sql.DB, groupname string) ([]models.User, error) {
 	return members, nil
 }
 
-func ListGroups( db *sql.DB) ([]models.Group, error) {
-	groups,err:= repository.GetAllGroups(db)
+func ListGroups(db *sql.DB) ([]models.Group, error) {
+	groups, err := repository.GetAllGroups(db)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
-	return groups,nil
+	return groups, nil
 }

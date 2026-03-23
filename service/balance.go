@@ -6,6 +6,7 @@ import (
 	"github.com/ChaitanyaSai-Meka/devledger/models"
 	"github.com/ChaitanyaSai-Meka/devledger/repository"
 	"sort"
+	"strings"
 )
 
 type balanceEntry struct {
@@ -14,6 +15,10 @@ type balanceEntry struct {
 }
 
 func CalculateBalances(db *sql.DB, groupName string) ([]models.UserBalance, error) {
+	groupName = strings.TrimSpace(groupName)
+	if groupName == "" {
+		return nil, errors.New("group name cannot be empty")
+	}
 	group, err := repository.GetGroupByName(db, groupName)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -27,15 +32,16 @@ func CalculateBalances(db *sql.DB, groupName string) ([]models.UserBalance, erro
 	}
 	balance := make(map[int]int64)
 	for _, expense := range expenses {
-		balance[expense.PaidByUserID] += expense.Amount
 		splits, err := repository.GetSplitsByExpenseID(db, expense.ExpenseID)
 		if err != nil {
 			return nil, err
 		}
 		for _, split := range splits {
-			if !split.Settled {
-				balance[split.UserID] -= split.Amount
+			if split.Settled || split.UserID == expense.PaidByUserID {
+				continue
 			}
+			balance[expense.PaidByUserID] += split.Amount
+			balance[split.UserID] -= split.Amount
 		}
 	}
 	members, err := repository.GetGroupMembers(db, group.GroupID)
@@ -61,6 +67,8 @@ func SimplifyDebts(balances []models.UserBalance) []models.Transaction {
 				user:   balance.User,
 				amount: balance.NetBalance,
 			})
+		} else if balance.NetBalance == 0 {
+			continue
 		} else {
 			debtors = append(debtors, balanceEntry{
 				user:   balance.User,

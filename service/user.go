@@ -3,8 +3,8 @@ package service
 import (
 	"database/sql"
 	"errors"
-	"strings"
 	"fmt"
+	"strings"
 
 	"github.com/ChaitanyaSai-Meka/devledger/models"
 	"github.com/ChaitanyaSai-Meka/devledger/repository"
@@ -49,7 +49,7 @@ func GetAllUsers(db *sql.DB) ([]models.User, error) {
 	return users, nil
 }
 
-func GetUserGroups(db *sql.DB, username string)([]models.Group, error){
+func GetUserGroups(db *sql.DB, username string) ([]models.Group, error) {
 	username = strings.TrimSpace(username)
 	if username == "" {
 		return nil, errors.New("username cannot be empty")
@@ -59,11 +59,11 @@ func GetUserGroups(db *sql.DB, username string)([]models.Group, error){
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("user '%s' not found", username)
 		}
-		return nil,err
+		return nil, err
 	}
 	groups, err := repository.GetGroupsByUserID(db, user.UserID)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	return groups, nil
 }
