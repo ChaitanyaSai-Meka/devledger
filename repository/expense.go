@@ -5,8 +5,8 @@ import (
 	"github.com/ChaitanyaSai-Meka/devledger/models"
 )
 
-func CreateExpense(db *sql.DB, expense models.Expense) (int64,error) {
-	result, err := db.Exec("INSERT INTO Expenses (Amount, Description, PaidByUserID, GroupID) VALUES (?,?,?,?)", expense.Amount, expense.Description, expense.PaidByUserID, expense.GroupID)
+func CreateExpense(tx *sql.Tx, expense models.Expense) (int64,error) {
+	result, err := tx.Exec("INSERT INTO Expenses (Amount, Description, PaidByUserID, GroupID) VALUES (?,?,?,?)", expense.Amount, expense.Description, expense.PaidByUserID, expense.GroupID)
 	if err != nil {
 		return 0,err
 	}

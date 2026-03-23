@@ -5,8 +5,8 @@ import (
 	"github.com/ChaitanyaSai-Meka/devledger/models"
 )
 
-func CreateSplit(db *sql.DB, split models.Split) error {
-	_, err := db.Exec("INSERT INTO Splits (ExpenseID, UserID, Amount, Settled) VALUES (?,?,?,?)", split.ExpenseID, split.UserID, split.Amount, split.Settled)
+func CreateSplit(tx *sql.Tx, split models.Split) error {
+	_, err := tx.Exec("INSERT INTO Splits (ExpenseID, UserID, Amount, Settled) VALUES (?,?,?,?)", split.ExpenseID, split.UserID, split.Amount, split.Settled)
 	if err != nil {
 		return err
 	}

@@ -16,7 +16,7 @@ type GroupMember struct {
 }
 
 type Expense struct {
-	ExpenseID int
+	ExpenseID int64
 	Amount int64
 	Description string
 	PaidByUserID int
@@ -25,7 +25,7 @@ type Expense struct {
 }
 
 type Split struct {
-	ExpenseID int
+	ExpenseID int64
 	UserID int
 	Amount int64
 	Settled bool

@@ -10,8 +10,90 @@ import (
 	"github.com/ChaitanyaSai-Meka/devledger/repository"
 )
 
-func AddExpense(db *sql.DB, expense models.Expense) error {
+func AddExpense(db *sql.DB, groupname string, description string, paidbyusername string, Amount int64) error {
+	groupname = strings.TrimSpace(groupname)
+	description = strings.TrimSpace(description)
+	paidbyusername = strings.TrimSpace(paidbyusername)
+	if Amount <= 0 {
+		return errors.New("amount must be greater than zero")
+	}
+	if groupname == "" {
+		return errors.New("group name cannot be empty")
+	}
+	if description == "" {
+		return errors.New("description cannot be empty")
+	}
+	if paidbyusername == "" {
+		return errors.New("paid by username cannot be empty")
+	}
+	group, err := repository.GetGroupByName(db, groupname)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("group '%s' not found", groupname)
+		}
+		return err
+	}
+	user, err := repository.GetUserByName(db, paidbyusername)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("user '%s' not found", paidbyusername)
+		}
+		return err
+	}
+	members, err := repository.GetGroupMembers(db, group.GroupID)
+	if err != nil {
+		return err
+	}
+	if len(members) == 0 {
+		return fmt.Errorf("group '%s' has no members", groupname)
+	}
+	isMember := false
+	for _, member := range members {
+		if member.UserID == user.UserID {
+			isMember = true
+			break
+		}
+	}
+	if !isMember {
+		return errors.New("User is not a member of the group")
+	}
+	expense := models.Expense{
+		Description:  description,
+		Amount:       Amount,
+		PaidByUserID: user.UserID,
+		GroupID:      group.GroupID,
+	}
+	splitAmount := Amount / int64(len(members))
+	reminder := Amount % int64(len(members))
 
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	expenseID, err := repository.CreateExpense(tx, expense)
+	if err != nil {
+		return err
+	}
+
+	for _, member := range members {
+		amount := splitAmount
+		if member.UserID == user.UserID {
+			amount += reminder
+		}
+		split := models.Split{
+			ExpenseID: expenseID,
+			UserID:    member.UserID,
+			Amount:    amount,
+			Settled:   false,
+		}
+		err = repository.CreateSplit(tx, split)
+		if err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 func ListExpensesByGroup(db *sql.DB, groupname string) ([]models.Expense, error) {
