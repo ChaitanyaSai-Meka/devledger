@@ -24,7 +24,7 @@ func CalculateBalances(db *sql.DB, groupName string) ([]models.UserBalance, erro
 	group, err := repository.GetGroupByName(db, groupName)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("group '%s' not found",groupName)
+			return nil, fmt.Errorf("group '%s' not found", groupName)
 		}
 		return nil, err
 	}

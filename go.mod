@@ -2,7 +2,10 @@ module github.com/ChaitanyaSai-Meka/devledger
 
 go 1.25.6
 
-require modernc.org/sqlite v1.47.0
+require (
+	github.com/shopspring/decimal v1.4.0
+	modernc.org/sqlite v1.47.0
+)
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect

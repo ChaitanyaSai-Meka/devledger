@@ -31,7 +31,7 @@ func AddExpense(db *sql.DB, groupname string, description string, paidbyusername
 		return err
 	}
 	defer tx.Rollback()
-	
+
 	group, err := repository.GetGroupByName(tx, groupname)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -78,14 +78,14 @@ func AddExpense(db *sql.DB, groupname string, description string, paidbyusername
 	}
 
 	for _, member := range members {
-		amount := splitAmount
+		memberAmount := splitAmount
 		if member.UserID == user.UserID {
-			amount += remainder
+			memberAmount += remainder
 		}
 		split := models.Split{
 			ExpenseID: expenseID,
 			UserID:    member.UserID,
-			Amount:    amount,
+			Amount:    memberAmount,
 			Settled:   member.UserID == user.UserID,
 		}
 		err = repository.CreateSplit(tx, split)
