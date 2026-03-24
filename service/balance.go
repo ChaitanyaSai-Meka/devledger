@@ -26,24 +26,19 @@ func CalculateBalances(db *sql.DB, groupName string) ([]models.UserBalance, erro
 		}
 		return nil, err
 	}
-	expenses, err := repository.GetExpensesByGroupID(db, group.GroupID)
-	if err != nil {
-		return nil, err
-	}
-	balance := make(map[int]int64)
-	for _, expense := range expenses {
-		splits, err := repository.GetSplitsByExpenseID(db, expense.ExpenseID)
-		if err != nil {
-			return nil, err
-		}
-		for _, split := range splits {
-			if split.Settled || split.UserID == expense.PaidByUserID {
-				continue
-			}
-			balance[expense.PaidByUserID] += split.Amount
-			balance[split.UserID] -= split.Amount
-		}
-	}
+    splits, err := repository.GetSplitsWithExpensesByGroupID(db, group.GroupID)
+    if err != nil {
+        return nil, err
+    }
+
+    balance := make(map[int]int64)
+    for _, split := range splits {
+        if split.Settled || split.UserID == split.PaidByUserID {
+            continue
+        }
+        balance[split.PaidByUserID] += split.Amount
+        balance[split.UserID] -= split.Amount
+    }
 	members, err := repository.GetGroupMembers(db, group.GroupID)
 	if err != nil {
 		return nil, err

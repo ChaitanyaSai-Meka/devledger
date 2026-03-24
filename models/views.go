@@ -25,3 +25,10 @@ type Transaction struct {
 	To     User
 	Amount int64
 }
+
+type SplitWithExpense struct {
+    PaidByUserID int
+    UserID       int
+    Amount       int64
+    Settled      bool
+}

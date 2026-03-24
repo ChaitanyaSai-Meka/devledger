@@ -202,22 +202,11 @@ func GetExpenseInDetail(db *sql.DB, expenseID int64) (models.ExpenseDetail, erro
 	if err != nil {
 		return models.ExpenseDetail{}, err
 	}
-	splits, err := repository.GetSplitsByExpenseID(db, expenseID)
-	if err != nil {
-		return models.ExpenseDetail{}, err
-	}
-	splitsDetails := []models.SplitDetail{}
-	for _, split := range splits {
-		splitUser, err := repository.GetUserByID(db, split.UserID)
+
+	splitsDetails, err := repository.GetSplitsWithUsersByExpenseID(db, expenseID)
 		if err != nil {
 			return models.ExpenseDetail{}, err
 		}
-		splitsDetails = append(splitsDetails, models.SplitDetail{
-			UserName: splitUser.UserName,
-			Amount:   split.Amount,
-			Settled:  split.Settled,
-		})
-	}
 	details := models.ExpenseDetail{
 		Description: expense.Description,
 		Amount:      expense.Amount,

@@ -71,3 +71,55 @@ func SettleSplit(db *sql.DB, expenseID int64, userID int) error {
 	}
 	return nil
 }
+
+func GetSplitsWithUsersByExpenseID(db *sql.DB, expenseID int64) ([]models.SplitDetail, error) {
+    rows, err := db.Query(`
+        SELECT u.UserName, s.Amount, s.Settled
+        FROM Splits s
+        JOIN Users u ON s.UserID = u.UserID
+        WHERE s.ExpenseID = ?
+    `, expenseID)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var splits []models.SplitDetail
+    for rows.Next() {
+        var split models.SplitDetail
+        if err := rows.Scan(&split.UserName, &split.Amount, &split.Settled); err != nil {
+            return nil, err
+        }
+        splits = append(splits, split)
+    }
+    if err := rows.Err(); err != nil {
+        return nil, err
+    }
+    return splits, nil
+}
+
+func GetSplitsWithExpensesByGroupID(db *sql.DB, groupID int) ([]models.SplitWithExpense, error) {
+    rows, err := db.Query(`
+        SELECT e.PaidByUserID, s.UserID, s.Amount, s.Settled
+        FROM Splits s
+        JOIN Expenses e ON s.ExpenseID = e.ExpenseID
+        WHERE e.GroupID = ?
+    `, groupID)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var results []models.SplitWithExpense
+    for rows.Next() {
+        var s models.SplitWithExpense
+        if err := rows.Scan(&s.PaidByUserID, &s.UserID, &s.Amount, &s.Settled); err != nil {
+            return nil, err
+        }
+        results = append(results, s)
+    }
+    if err := rows.Err(); err != nil {
+        return nil, err
+    }
+    return results, nil
+}
