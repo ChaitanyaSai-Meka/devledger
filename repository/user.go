@@ -67,13 +67,13 @@ func GetAllUsers(db *sql.DB) ([]models.User, error) {
 func DeleteUserByID(db *sql.DB, userID int) error {
 	result, err := db.Exec("DELETE FROM Users WHERE UserID = ?", userID)
 	if err != nil {
+		if strings.Contains(err.Error(), "FOREIGN KEY constraint failed") {
+			return errors.New("cannot delete user because they are still referenced")
+		}
 		return err
 	}
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		if strings.Contains(err.Error(), "FOREIGN KEY constraint failed") {
-			return errors.New("cannot delete user with unsettled debts")
-		}
 		return err
 	}
 	if rowsAffected == 0 {

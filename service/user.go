@@ -34,6 +34,15 @@ func DeleteUser(db *sql.DB, username string) error {
 		}
 		return err
 	}
+
+	splits, err := repository.GetUnsettledSplitsByUserID(db, user.UserID)
+	if err != nil {
+		return err
+	}
+	if len(splits) > 0 {
+		return fmt.Errorf("cannot delete user '%s' with unsettled debts", username)
+	}
+
 	err = repository.DeleteUserByID(db, user.UserID)
 	if err != nil {
 		return err
