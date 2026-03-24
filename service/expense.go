@@ -55,7 +55,7 @@ func AddExpense(db *sql.DB, groupname string, description string, paidbyusername
 		}
 	}
 	if !isMember {
-		return errors.New("User is not a member of the group")
+		return fmt.Errorf("user '%s' is not a member of group '%s'", paidbyusername, groupname)
 	}
 	expense := models.Expense{
 		Description:  description,
