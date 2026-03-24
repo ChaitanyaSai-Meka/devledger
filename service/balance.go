@@ -3,10 +3,12 @@ package service
 import (
 	"database/sql"
 	"errors"
-	"github.com/ChaitanyaSai-Meka/devledger/models"
-	"github.com/ChaitanyaSai-Meka/devledger/repository"
+	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/ChaitanyaSai-Meka/devledger/models"
+	"github.com/ChaitanyaSai-Meka/devledger/repository"
 )
 
 type balanceEntry struct {
@@ -22,23 +24,23 @@ func CalculateBalances(db *sql.DB, groupName string) ([]models.UserBalance, erro
 	group, err := repository.GetGroupByName(db, groupName)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New("group not found")
+			return nil, fmt.Errorf("group '%s' not found",groupName)
 		}
 		return nil, err
 	}
-    splits, err := repository.GetSplitsWithExpensesByGroupID(db, group.GroupID)
-    if err != nil {
-        return nil, err
-    }
+	splits, err := repository.GetSplitsWithExpensesByGroupID(db, group.GroupID)
+	if err != nil {
+		return nil, err
+	}
 
-    balance := make(map[int]int64)
-    for _, split := range splits {
-        if split.Settled || split.UserID == split.PaidByUserID {
-            continue
-        }
-        balance[split.PaidByUserID] += split.Amount
-        balance[split.UserID] -= split.Amount
-    }
+	balance := make(map[int]int64)
+	for _, split := range splits {
+		if split.Settled || split.UserID == split.PaidByUserID {
+			continue
+		}
+		balance[split.PaidByUserID] += split.Amount
+		balance[split.UserID] -= split.Amount
+	}
 	members, err := repository.GetGroupMembers(db, group.GroupID)
 	if err != nil {
 		return nil, err

@@ -33,7 +33,7 @@ func GetUserByID(db *sql.DB, userID int) (models.User, error) {
 	return user, nil
 }
 
-func GetUserByName(db *sql.DB, username string) (models.User, error) {
+func GetUserByName(db DBTX, username string) (models.User, error) {
 	var user models.User
 	err := db.QueryRow("SELECT UserID, UserName FROM Users WHERE UserName = ?", username).Scan(&user.UserID, &user.UserName)
 	if err != nil {

@@ -27,8 +27,8 @@ type Transaction struct {
 }
 
 type SplitWithExpense struct {
-    PaidByUserID int
-    UserID       int
-    Amount       int64
-    Settled      bool
+	PaidByUserID int
+	UserID       int
+	Amount       int64
+	Settled      bool
 }

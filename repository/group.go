@@ -54,7 +54,7 @@ func GetGroupByID(db *sql.DB, groupID int) (models.Group, error) {
 	return group, nil
 }
 
-func GetGroupByName(db *sql.DB, groupName string) (models.Group, error) {
+func GetGroupByName(db DBTX, groupName string) (models.Group, error) {
 	var group models.Group
 	err := db.QueryRow(
 		"SELECT GroupID, GroupName FROM Groups WHERE GroupName = ?",
@@ -108,7 +108,7 @@ func RemoveMember(db *sql.DB, groupID int, userID int) error {
 	return nil
 }
 
-func GetGroupMembers(db *sql.DB, groupID int) ([]models.User, error) {
+func GetGroupMembers(db DBTX, groupID int) ([]models.User, error) {
 	rows, err := db.Query(" SELECT u.UserID, u.UserName FROM Users u JOIN GroupMembers gm ON u.UserID = gm.UserID WHERE gm.GroupID = ?", groupID)
 	if err != nil {
 		return nil, err

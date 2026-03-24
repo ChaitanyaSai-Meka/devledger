@@ -27,14 +27,14 @@ func DeleteGroup(db *sql.DB, groupname string) error {
 	if groupname == "" {
 		return errors.New("group name cannot be empty")
 	}
-	groups, err := repository.GetGroupByName(db, groupname)
+	group, err := repository.GetGroupByName(db, groupname)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return fmt.Errorf("group '%s' not found", groupname)
 		}
 		return err
 	}
-	err = repository.DeleteGroupByID(db, groups.GroupID)
+	err = repository.DeleteGroupByID(db, group.GroupID)
 	if err != nil {
 		return err
 	}

@@ -26,21 +26,27 @@ func AddExpense(db *sql.DB, groupname string, description string, paidbyusername
 	if paidbyusername == "" {
 		return errors.New("paid by username cannot be empty")
 	}
-	group, err := repository.GetGroupByName(db, groupname)
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	
+	group, err := repository.GetGroupByName(tx, groupname)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return fmt.Errorf("group '%s' not found", groupname)
 		}
 		return err
 	}
-	user, err := repository.GetUserByName(db, paidbyusername)
+	user, err := repository.GetUserByName(tx, paidbyusername)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return fmt.Errorf("user '%s' not found", paidbyusername)
 		}
 		return err
 	}
-	members, err := repository.GetGroupMembers(db, group.GroupID)
+	members, err := repository.GetGroupMembers(tx, group.GroupID)
 	if err != nil {
 		return err
 	}
@@ -65,12 +71,6 @@ func AddExpense(db *sql.DB, groupname string, description string, paidbyusername
 	}
 	splitAmount := amount / int64(len(members))
 	remainder := amount % int64(len(members))
-
-	tx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
 
 	expenseID, err := repository.CreateExpense(tx, expense)
 	if err != nil {
@@ -204,9 +204,9 @@ func GetExpenseInDetail(db *sql.DB, expenseID int64) (models.ExpenseDetail, erro
 	}
 
 	splitsDetails, err := repository.GetSplitsWithUsersByExpenseID(db, expenseID)
-		if err != nil {
-			return models.ExpenseDetail{}, err
-		}
+	if err != nil {
+		return models.ExpenseDetail{}, err
+	}
 	details := models.ExpenseDetail{
 		Description: expense.Description,
 		Amount:      expense.Amount,
