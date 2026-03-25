@@ -45,7 +45,7 @@ func DeleteUser(db *sql.DB, username string) error {
 
 	err = repository.DeleteUserByID(db, user.UserID)
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot delete user '%s': %w", username, err)
 	}
 	return nil
 }

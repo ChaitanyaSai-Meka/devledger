@@ -3,6 +3,7 @@ package models
 type User struct {
 	UserID   int
 	UserName string
+	DeletedAt string
 }
 
 type Group struct {

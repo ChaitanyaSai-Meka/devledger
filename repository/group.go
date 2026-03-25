@@ -109,7 +109,7 @@ func RemoveMember(db *sql.DB, groupID int, userID int) error {
 }
 
 func GetGroupMembers(db DBTX, groupID int) ([]models.User, error) {
-	rows, err := db.Query(" SELECT u.UserID, u.UserName FROM Users u JOIN GroupMembers gm ON u.UserID = gm.UserID WHERE gm.GroupID = ?", groupID)
+	rows, err := db.Query(" SELECT u.UserID, u.UserName FROM Users u JOIN GroupMembers gm ON u.UserID = gm.UserID WHERE gm.GroupID = ? AND u.DeletedAt IS NULL", groupID)
 	if err != nil {
 		return nil, err
 	}
