@@ -17,7 +17,7 @@ func AddExpense(db *sql.DB, groupname string, description string, paidbyusername
 	paidbyusername = strings.TrimSpace(paidbyusername)
 	convertedamount, err := money.ParseToMinorUnit(amount)
 	if err != nil {
-		return fmt.Errorf("invalid amount: %v", err)
+		return fmt.Errorf("invalid amount: %w", err)
 	}
 	if groupname == "" {
 		return errors.New("group name cannot be empty")
@@ -199,7 +199,7 @@ func GetExpenseInDetail(db *sql.DB, expenseID int64) (models.ExpenseDetail, erro
 		}
 		return models.ExpenseDetail{}, err
 	}
-	user, err := repository.GetUserByID(db, expense.PaidByUserID)
+	user, err := repository.GetUserByIDIncludingDeleted(db, expense.PaidByUserID)
 	if err != nil {
 		return models.ExpenseDetail{}, err
 	}

@@ -88,3 +88,30 @@ func DeleteExpenseByID(db *sql.DB, expenseID int64) error {
 	}
 	return nil
 }
+
+func GetUnsettledSplitsForExpensesPaidByUserID(db *sql.DB, userID int) ([]models.Split, error) {
+	rows, err := db.Query(`
+		SELECT s.ExpenseID, s.UserID, s.Amount, s.Settled
+		FROM Splits s
+		JOIN Expenses e ON s.ExpenseID = e.ExpenseID
+		WHERE e.PaidByUserID = ? AND s.Settled = 0 AND s.UserID != e.PaidByUserID
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	splits := []models.Split{}
+	for rows.Next() {
+		var split models.Split
+		err := rows.Scan(&split.ExpenseID, &split.UserID, &split.Amount, &split.Settled)
+		if err != nil {
+			return nil, err
+		}
+		splits = append(splits, split)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return splits, nil
+}

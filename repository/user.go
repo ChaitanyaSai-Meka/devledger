@@ -66,7 +66,7 @@ func GetAllUsers(db *sql.DB) ([]models.User, error) {
 
 func DeleteUserByID(db *sql.DB, userID int) error {
 	result, err := db.Exec("UPDATE Users SET DeletedAt = CURRENT_TIMESTAMP WHERE UserID = ?",
-        userID,)
+		userID)
 	if err != nil {
 		return err
 	}
@@ -78,4 +78,18 @@ func DeleteUserByID(db *sql.DB, userID int) error {
 		return sql.ErrNoRows
 	}
 	return nil
+}
+
+func GetUserByIDIncludingDeleted(db *sql.DB, userID int) (models.User, error) {
+	var user models.User
+
+	err := db.QueryRow(
+		"SELECT UserID, UserName FROM Users WHERE UserID = ? ",
+		userID,
+	).Scan(&user.UserID, &user.UserName)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	return user, nil
 }
