@@ -1,35 +1,33 @@
 package models
 
 type User struct {
-	UserID int
-	UserName string
+	UserID    int
+	UserName  string
+	DeletedAt string
 }
 
 type Group struct {
-	GroupID int
+	GroupID   int
 	GroupName string
 }
 
 type GroupMember struct {
 	GroupID int
-	UserID int
+	UserID  int
 }
 
 type Expense struct {
-	ExpenseID int
-	Amount int64
-	Description string
+	ExpenseID    int64
+	Amount       int64
+	Description  string
 	PaidByUserID int
-	GroupID int
-	CreatedAt string
+	GroupID      int
+	CreatedAt    string
 }
 
 type Split struct {
-	ExpenseID int
-	UserID int
-	Amount int64
-	Settled bool
+	ExpenseID int64
+	UserID    int
+	Amount    int64
+	Settled   bool
 }
-
-
-

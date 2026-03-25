@@ -5,15 +5,20 @@ import (
 	"github.com/ChaitanyaSai-Meka/devledger/models"
 )
 
-func CreateExpense(db *sql.DB, expense models.Expense) error {
-	_, err := db.Exec("INSERT INTO Expenses (Amount, Description, PaidByUserID, GroupID) VALUES (?,?,?,?)", expense.Amount, expense.Description, expense.PaidByUserID, expense.GroupID)
+func CreateExpense(tx *sql.Tx, expense models.Expense) (int64, error) {
+	result, err := tx.Exec("INSERT INTO Expenses (Amount, Description, PaidByUserID, GroupID) VALUES (?,?,?,?)", expense.Amount, expense.Description, expense.PaidByUserID, expense.GroupID)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
 }
 
-func GetExpenseByID(db *sql.DB, expenseID int) (models.Expense, error) {
+func GetExpenseByID(db *sql.DB, expenseID int64) (models.Expense, error) {
 	var expense models.Expense
 	err := db.QueryRow(
 		"SELECT ExpenseID, Amount, Description, PaidByUserID, GroupID, CreatedAt FROM Expenses WHERE ExpenseID = ?",
@@ -69,7 +74,7 @@ func GetExpensesByUserID(db *sql.DB, userID int) ([]models.Expense, error) {
 	return expenses, nil
 }
 
-func DeleteExpenseByID(db *sql.DB, expenseID int) error {
+func DeleteExpenseByID(db *sql.DB, expenseID int64) error {
 	result, err := db.Exec("DELETE FROM Expenses WHERE ExpenseID = ?", expenseID)
 	if err != nil {
 		return err
@@ -82,4 +87,31 @@ func DeleteExpenseByID(db *sql.DB, expenseID int) error {
 		return sql.ErrNoRows
 	}
 	return nil
+}
+
+func GetUnsettledSplitsForExpensesPaidByUserID(db *sql.DB, userID int) ([]models.Split, error) {
+	rows, err := db.Query(`
+		SELECT s.ExpenseID, s.UserID, s.Amount, s.Settled
+		FROM Splits s
+		JOIN Expenses e ON s.ExpenseID = e.ExpenseID
+		WHERE e.PaidByUserID = ? AND s.Settled = 0 AND s.UserID != e.PaidByUserID
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	splits := []models.Split{}
+	for rows.Next() {
+		var split models.Split
+		err := rows.Scan(&split.ExpenseID, &split.UserID, &split.Amount, &split.Settled)
+		if err != nil {
+			return nil, err
+		}
+		splits = append(splits, split)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return splits, nil
 }
