@@ -7,15 +7,17 @@ import (
 	"strings"
 
 	"github.com/ChaitanyaSai-Meka/devledger/models"
+	"github.com/ChaitanyaSai-Meka/devledger/money"
 	"github.com/ChaitanyaSai-Meka/devledger/repository"
 )
 
-func AddExpense(db *sql.DB, groupname string, description string, paidbyusername string, amount int64) error {
+func AddExpense(db *sql.DB, groupname string, description string, paidbyusername string, amount string) error {
 	groupname = strings.TrimSpace(groupname)
 	description = strings.TrimSpace(description)
 	paidbyusername = strings.TrimSpace(paidbyusername)
-	if amount <= 0 {
-		return errors.New("amount must be greater than zero")
+	convertedamount, err := money.ParseToMinorUnit(amount)
+	if err != nil {
+		return fmt.Errorf("invalid amount: %v", err)
 	}
 	if groupname == "" {
 		return errors.New("group name cannot be empty")
@@ -53,6 +55,9 @@ func AddExpense(db *sql.DB, groupname string, description string, paidbyusername
 	if len(members) == 0 {
 		return fmt.Errorf("group '%s' has no members", groupname)
 	}
+	if convertedamount < int64(len(members)) {
+		return fmt.Errorf("amount is too small to split among %d members", len(members))
+	}
 	isMember := false
 	for _, member := range members {
 		if member.UserID == user.UserID {
@@ -65,12 +70,12 @@ func AddExpense(db *sql.DB, groupname string, description string, paidbyusername
 	}
 	expense := models.Expense{
 		Description:  description,
-		Amount:       amount,
+		Amount:       convertedamount,
 		PaidByUserID: user.UserID,
 		GroupID:      group.GroupID,
 	}
-	splitAmount := amount / int64(len(members))
-	remainder := amount % int64(len(members))
+	splitAmount := convertedamount / int64(len(members))
+	remainder := convertedamount % int64(len(members))
 
 	expenseID, err := repository.CreateExpense(tx, expense)
 	if err != nil {

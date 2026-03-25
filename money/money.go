@@ -15,6 +15,9 @@ func ParseToMinorUnit(amount string) (int64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("failed to parse amount '%s': %w", amount, err)
 	}
+	if d.IsNegative() {
+		return 0, fmt.Errorf("amount cannot be negative")
+	}
 	minorUnit := d.Shift(2).Round(0)
 	return minorUnit.IntPart(), nil
 }
