@@ -3,6 +3,7 @@ module github.com/ChaitanyaSai-Meka/devledger
 go 1.25.6
 
 require (
+	github.com/go-chi/chi/v5 v5.2.5
 	github.com/shopspring/decimal v1.4.0
 	modernc.org/sqlite v1.47.0
 )
