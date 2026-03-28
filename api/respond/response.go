@@ -10,8 +10,8 @@ func WriteJSON(w http.ResponseWriter, status int, data any) {
 	body, err := json.Marshal(data)
 	if err != nil {
 		log.Printf("failed to marshal JSON response: %v", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+		body = []byte(`{"success":false,"error":"internal server error"}`)
+		status = http.StatusInternalServerError
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -24,20 +24,20 @@ func WriteJSON(w http.ResponseWriter, status int, data any) {
 func WriteCreated(w http.ResponseWriter, data any) {
 	WriteJSON(w, http.StatusCreated, map[string]any{
 		"success": true,
-		"data":data,
+		"data":    data,
 	})
 }
 
 func WriteOK(w http.ResponseWriter, data any) {
 	WriteJSON(w, http.StatusOK, map[string]any{
 		"success": true,
-		"data": data,
+		"data":    data,
 	})
 }
 
 func WriteError(w http.ResponseWriter, status int, message string) {
 	WriteJSON(w, status, map[string]any{
 		"success": false,
-		"error": message,
+		"error":   message,
 	})
 }

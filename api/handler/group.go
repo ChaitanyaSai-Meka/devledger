@@ -23,7 +23,7 @@ func CreateGroupHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		err := service.CreateGroup(db,input.Groupname)
+		err := service.CreateGroup(db, input.Groupname)
 		if err != nil {
 			switch {
 			case errors.Is(err, service.ErrInvalidInput):
