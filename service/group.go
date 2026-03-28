@@ -11,11 +11,11 @@ import (
 )
 
 func isDuplicateGroupError(err error) bool {
-	return err != nil && err.Error() == "group name already exists"
+	return errors.Is(err, repository.ErrGroupAlreadyExists)
 }
 
 func isDuplicateGroupMemberError(err error) bool {
-	return err != nil && err.Error() == "user is already a member of this group"
+	return errors.Is(err, repository.ErrUserAlreadyInGroup)
 }
 
 func CreateGroup(db *sql.DB, groupname string) error {

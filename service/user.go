@@ -11,7 +11,7 @@ import (
 )
 
 func isDuplicateUserError(err error) bool {
-	return err != nil && err.Error() == "username already exists"
+	return errors.Is(err, repository.ErrUserAlreadyExists)
 }
 
 func CreateUser(db *sql.DB, username string) error {

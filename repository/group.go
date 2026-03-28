@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"errors"
 	"github.com/ChaitanyaSai-Meka/devledger/models"
 	"strings"
 )
@@ -11,7 +10,7 @@ func CreateGroup(db *sql.DB, groupName string) error {
 	_, err := db.Exec("INSERT INTO Groups (GroupName) VALUES (?)", groupName)
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
-			return errors.New("group name already exists")
+			return ErrGroupAlreadyExists
 		}
 		return err
 	}
@@ -82,18 +81,18 @@ func DeleteGroupByID(db *sql.DB, groupID int) error {
 	return nil
 }
 
-func AddMember(db *sql.DB, groupID int, userID int) error {
+func AddMember(db DBTX, groupID int, userID int) error {
 	_, err := db.Exec("INSERT INTO GroupMembers (GroupID, UserID) VALUES (?,?)", groupID, userID)
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
-			return errors.New("user is already a member of this group")
+			return ErrUserAlreadyInGroup
 		}
 		return err
 	}
 	return nil
 }
 
-func RemoveMember(db *sql.DB, groupID int, userID int) error {
+func RemoveMember(db DBTX, groupID int, userID int) error {
 	result, err := db.Exec("DELETE FROM GroupMembers WHERE GroupID = ? AND UserID = ?", groupID, userID)
 	if err != nil {
 		return err

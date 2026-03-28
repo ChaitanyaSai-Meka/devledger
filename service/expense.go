@@ -17,16 +17,16 @@ func AddExpense(db *sql.DB, groupname string, description string, paidbyusername
 	paidbyusername = strings.TrimSpace(paidbyusername)
 	convertedamount, err := money.ParseToMinorUnit(amount)
 	if err != nil {
-		return fmt.Errorf("invalid amount: %w", err)
+		return fmt.Errorf("%w: invalid amount: %v", ErrInvalidInput, err)
 	}
 	if groupname == "" {
-		return errors.New("group name cannot be empty")
+		return fmt.Errorf("%w: group name cannot be empty", ErrInvalidInput)
 	}
 	if description == "" {
-		return errors.New("description cannot be empty")
+		return fmt.Errorf("%w: description cannot be empty", ErrInvalidInput)
 	}
 	if paidbyusername == "" {
-		return errors.New("paid by username cannot be empty")
+		return fmt.Errorf("%w: paid by username cannot be empty", ErrInvalidInput)
 	}
 	tx, err := db.Begin()
 	if err != nil {
@@ -37,14 +37,14 @@ func AddExpense(db *sql.DB, groupname string, description string, paidbyusername
 	group, err := repository.GetGroupByName(tx, groupname)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("group '%s' not found", groupname)
+			return fmt.Errorf("%w: group '%s' not found", ErrNotFound, groupname)
 		}
 		return err
 	}
 	user, err := repository.GetUserByName(tx, paidbyusername)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("user '%s' not found", paidbyusername)
+			return fmt.Errorf("%w: user '%s' not found", ErrNotFound, paidbyusername)
 		}
 		return err
 	}
@@ -53,10 +53,10 @@ func AddExpense(db *sql.DB, groupname string, description string, paidbyusername
 		return err
 	}
 	if len(members) == 0 {
-		return fmt.Errorf("group '%s' has no members", groupname)
+		return fmt.Errorf("%w: group '%s' has no members", ErrConflict, groupname)
 	}
 	if convertedamount < int64(len(members)) {
-		return fmt.Errorf("amount is too small to split among %d members", len(members))
+		return fmt.Errorf("%w: amount is too small to split among %d members", ErrInvalidInput, len(members))
 	}
 	isMember := false
 	for _, member := range members {
@@ -66,7 +66,7 @@ func AddExpense(db *sql.DB, groupname string, description string, paidbyusername
 		}
 	}
 	if !isMember {
-		return fmt.Errorf("user '%s' is not a member of group '%s'", paidbyusername, groupname)
+		return fmt.Errorf("%w: user '%s' is not a member of group '%s'", ErrConflict, paidbyusername, groupname)
 	}
 	expense := models.Expense{
 		Description:  description,
@@ -104,12 +104,12 @@ func AddExpense(db *sql.DB, groupname string, description string, paidbyusername
 func ListExpensesByGroup(db *sql.DB, groupname string) ([]models.Expense, error) {
 	groupname = strings.TrimSpace(groupname)
 	if groupname == "" {
-		return nil, errors.New("group name cannot be empty")
+		return nil, fmt.Errorf("%w: group name cannot be empty", ErrInvalidInput)
 	}
 	group, err := repository.GetGroupByName(db, groupname)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("group '%s' not found", groupname)
+			return nil, fmt.Errorf("%w: group '%s' not found", ErrNotFound, groupname)
 		}
 		return nil, err
 	}
@@ -123,12 +123,12 @@ func ListExpensesByGroup(db *sql.DB, groupname string) ([]models.Expense, error)
 func ListExpensesByUser(db *sql.DB, username string) ([]models.Expense, error) {
 	username = strings.TrimSpace(username)
 	if username == "" {
-		return nil, errors.New("username cannot be empty")
+		return nil, fmt.Errorf("%w: username cannot be empty", ErrInvalidInput)
 	}
 	user, err := repository.GetUserByName(db, username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("user '%s' not found", username)
+			return nil, fmt.Errorf("%w: user '%s' not found", ErrNotFound, username)
 		}
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func DeleteExpense(db *sql.DB, expenseID int64) error {
 	err := repository.DeleteExpenseByID(db, expenseID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("expense with ID '%d' not found", expenseID)
+			return fmt.Errorf("%w: expense with ID '%d' not found", ErrNotFound, expenseID)
 		}
 		return err
 	}
@@ -153,19 +153,19 @@ func DeleteExpense(db *sql.DB, expenseID int64) error {
 func SettleExpense(db *sql.DB, expenseID int64, username string) error {
 	username = strings.TrimSpace(username)
 	if username == "" {
-		return errors.New("username cannot be empty")
+		return fmt.Errorf("%w: username cannot be empty", ErrInvalidInput)
 	}
 	user, err := repository.GetUserByName(db, username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("user '%s' not found", username)
+			return fmt.Errorf("%w: user '%s' not found", ErrNotFound, username)
 		}
 		return err
 	}
 	err = repository.SettleSplit(db, expenseID, user.UserID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("user '%s' has no unsettled split for expense ID %d", username, expenseID)
+			return fmt.Errorf("%w: user '%s' has no unsettled split for expense ID %d", ErrNotFound, username, expenseID)
 		}
 		return err
 	}
@@ -175,12 +175,12 @@ func SettleExpense(db *sql.DB, expenseID int64, username string) error {
 func ListUnsettledSplits(db *sql.DB, username string) ([]models.Split, error) {
 	username = strings.TrimSpace(username)
 	if username == "" {
-		return nil, errors.New("username cannot be empty")
+		return nil, fmt.Errorf("%w: username cannot be empty", ErrInvalidInput)
 	}
 	user, err := repository.GetUserByName(db, username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("user '%s' not found", username)
+			return nil, fmt.Errorf("%w: user '%s' not found", ErrNotFound, username)
 		}
 		return nil, err
 	}
@@ -195,7 +195,7 @@ func GetExpenseInDetail(db *sql.DB, expenseID int64) (models.ExpenseDetail, erro
 	expense, err := repository.GetExpenseByID(db, expenseID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return models.ExpenseDetail{}, fmt.Errorf("expense with ID %d not found", expenseID)
+			return models.ExpenseDetail{}, fmt.Errorf("%w: expense with ID %d not found", ErrNotFound, expenseID)
 		}
 		return models.ExpenseDetail{}, err
 	}

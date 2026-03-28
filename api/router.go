@@ -16,12 +16,19 @@ func SetupRouter(db *sql.DB) http.Handler {
 	r.Get("/users/{username}/groups", handler.GetUserGroupsHandler(db))
 	r.Delete("/users/{username}", handler.DeleteUserHandler(db))
 
-	r.Post("/groups", handler.CreateGroupsHandler(db))
+	r.Post("/groups", handler.CreateGroupHandler(db))
 	r.Get("/groups", handler.ListGroupsHandler(db))
 	r.Get("/groups/{groupname}/members", handler.ListGroupMembersHandler(db))
 	r.Delete("/groups/{groupname}/members/{username}", handler.RemoveMemberFromGroupHandler(db))
 	r.Delete("/groups/{groupname}",handler.DeleteGroupHandler(db))
 	r.Post("/groups/{groupname}/members", handler.AddMemberToGroupHandler(db))
 
+	r.Post("/groups/{groupname}/expenses", handler.AddExpenseHandler(db))
+	r.Get("/groups/{groupname}/expenses", handler.ListExpensesByGroupHandler(db))
+	r.Get("/users/{username}/expenses", handler.ListExpensesByUserHandler(db))
+	r.Delete("/expenses/{expenseID}",handler.DeleteExpenseHandler(db))
+	r.Post("/expenses/{expenseID}/settle/{username}", handler.SettleExpenseHandler(db))
+	r.Get("/users/{username}", handler.ListUnsettledSplitsHandler(db))
+	r.Get("/expenses/{expenseID}/detail", handler.ExpenseInDetailHandler(db))
 	return r
 }

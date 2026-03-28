@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"errors"
 	"github.com/ChaitanyaSai-Meka/devledger/models"
 	"strings"
 )
@@ -12,7 +11,7 @@ func CreateUser(db *sql.DB, username string) error {
 
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
-			return errors.New("username already exists")
+			return ErrUserAlreadyExists
 		}
 		return err
 	}
