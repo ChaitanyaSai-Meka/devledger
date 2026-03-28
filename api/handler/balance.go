@@ -53,7 +53,7 @@ func SimplifyDebtHandler(db *sql.DB) http.HandlerFunc {
 			}
 			return
 		}
-		simplifieddebts := service.SimplifyDebts(balance)
-		respond.WriteOK(w, simplifieddebts)
+		simplifiedDebts := service.SimplifyDebts(balance)
+		respond.WriteOK(w, simplifiedDebts)
 	}
 }

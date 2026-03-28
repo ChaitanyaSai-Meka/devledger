@@ -199,7 +199,7 @@ func ExpenseInDetailHandler(db *sql.DB) http.HandlerFunc {
 			respond.WriteError(w, http.StatusBadRequest, "invalid expense ID")
 			return
 		}
-		expenses, err := service.GetExpenseInDetail(db, expenseID)
+		expense, err := service.GetExpenseInDetail(db, expenseID)
 		if err != nil {
 			switch {
 			case errors.Is(err, service.ErrInvalidInput):
@@ -213,6 +213,6 @@ func ExpenseInDetailHandler(db *sql.DB) http.HandlerFunc {
 			}
 			return
 		}
-		respond.WriteOK(w, expenses)
+		respond.WriteOK(w, expense)
 	}
 }

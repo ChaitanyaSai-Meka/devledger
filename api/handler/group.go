@@ -116,6 +116,8 @@ func RemoveMemberFromGroupHandler(db *sql.DB) http.HandlerFunc {
 				respond.WriteError(w, http.StatusBadRequest, err.Error())
 			case errors.Is(err, service.ErrNotFound):
 				respond.WriteError(w, http.StatusNotFound, err.Error())
+			case errors.Is(err, service.ErrConflict):
+				respond.WriteError(w, http.StatusConflict, err.Error())
 			default:
 				respond.WriteError(w, http.StatusInternalServerError, "internal server error")
 			}

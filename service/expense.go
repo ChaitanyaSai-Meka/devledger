@@ -17,7 +17,7 @@ func AddExpense(db *sql.DB, groupname string, description string, paidbyusername
 	paidbyusername = strings.TrimSpace(paidbyusername)
 	convertedamount, err := money.ParseToMinorUnit(amount)
 	if err != nil {
-		return fmt.Errorf("%w: invalid amount: %v", ErrInvalidInput, err)
+		return errors.Join(ErrInvalidInput, fmt.Errorf("invalid amount: %w", err))
 	}
 	if groupname == "" {
 		return fmt.Errorf("%w: group name cannot be empty", ErrInvalidInput)
