@@ -165,7 +165,7 @@ func SettleExpense(db *sql.DB, expenseID int64, username string) error {
 	err = repository.SettleSplit(db, expenseID, user.UserID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("%w: user '%s' has no unsettled split for expense ID %d", ErrNotFound, username, expenseID)
+			return fmt.Errorf("%w: user '%s' has no unsettled split for expense ID %d", ErrConflict, username, expenseID)
 		}
 		return err
 	}

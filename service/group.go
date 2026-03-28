@@ -116,7 +116,7 @@ func RemoveMemberFromGroup(db *sql.DB, groupname string, username string) error 
 	err = repository.RemoveMember(db, group.GroupID, user.UserID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("%w: user '%s' is not a member of group '%s'", ErrNotFound, username, groupname)
+			return fmt.Errorf("%w: user '%s' is not a member of group '%s'", ErrConflict, username, groupname)
 		}
 		return err
 	}

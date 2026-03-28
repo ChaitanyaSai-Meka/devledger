@@ -28,7 +28,10 @@ func SetupRouter(db *sql.DB) http.Handler {
 	r.Get("/users/{username}/expenses", handler.ListExpensesByUserHandler(db))
 	r.Delete("/expenses/{expenseID}",handler.DeleteExpenseHandler(db))
 	r.Post("/expenses/{expenseID}/settle/{username}", handler.SettleExpenseHandler(db))
-	r.Get("/users/{username}", handler.ListUnsettledSplitsHandler(db))
+	r.Get("/users/{username}/unsettled-splits", handler.ListUnsettledSplitsHandler(db))
 	r.Get("/expenses/{expenseID}/detail", handler.ExpenseInDetailHandler(db))
+
+	r.Get("/groups/{groupname}/balance", handler.CalculateBalanceHandler(db))
+	r.Get("/groups/{groupname}/balance/simplify", handler.SimplifyDebtHandler(db))
 	return r
 }
