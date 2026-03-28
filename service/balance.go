@@ -19,12 +19,12 @@ type balanceEntry struct {
 func CalculateBalances(db *sql.DB, groupName string) ([]models.UserBalance, error) {
 	groupName = strings.TrimSpace(groupName)
 	if groupName == "" {
-		return nil, errors.New("group name cannot be empty")
+		return nil, fmt.Errorf("%w: group name cannot be empty", ErrInvalidInput)
 	}
 	group, err := repository.GetGroupByName(db, groupName)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("group '%s' not found", groupName)
+			return nil, fmt.Errorf("%w: group '%s' not found", ErrNotFound, groupName)
 		}
 		return nil, err
 	}

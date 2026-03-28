@@ -10,13 +10,24 @@ import (
 	"github.com/ChaitanyaSai-Meka/devledger/repository"
 )
 
+func isDuplicateGroupError(err error) bool {
+	return errors.Is(err, repository.ErrGroupAlreadyExists)
+}
+
+func isDuplicateGroupMemberError(err error) bool {
+	return errors.Is(err, repository.ErrUserAlreadyInGroup)
+}
+
 func CreateGroup(db *sql.DB, groupname string) error {
 	groupname = strings.TrimSpace(groupname)
 	if groupname == "" {
-		return errors.New("group name cannot be empty")
+		return fmt.Errorf("%w: group name cannot be empty", ErrInvalidInput)
 	}
 	err := repository.CreateGroup(db, groupname)
 	if err != nil {
+		if isDuplicateGroupError(err) {
+			return fmt.Errorf("%w: group '%s' already exists", ErrConflict, groupname)
+		}
 		return err
 	}
 	return nil
@@ -25,17 +36,20 @@ func CreateGroup(db *sql.DB, groupname string) error {
 func DeleteGroup(db *sql.DB, groupname string) error {
 	groupname = strings.TrimSpace(groupname)
 	if groupname == "" {
-		return errors.New("group name cannot be empty")
+		return fmt.Errorf("%w: group name cannot be empty", ErrInvalidInput)
 	}
 	group, err := repository.GetGroupByName(db, groupname)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("group '%s' not found", groupname)
+			return fmt.Errorf("%w: group '%s' not found", ErrNotFound, groupname)
 		}
 		return err
 	}
 	err = repository.DeleteGroupByID(db, group.GroupID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("%w: group '%s' not found", ErrNotFound, groupname)
+		}
 		return err
 	}
 	return nil
@@ -46,27 +60,30 @@ func AddMemberToGroup(db *sql.DB, groupname string, username string) error {
 	username = strings.TrimSpace(username)
 
 	if groupname == "" {
-		return errors.New("group name cannot be empty")
+		return fmt.Errorf("%w: group name cannot be empty", ErrInvalidInput)
 	}
 	if username == "" {
-		return errors.New("username cannot be empty")
+		return fmt.Errorf("%w: username cannot be empty", ErrInvalidInput)
 	}
 	group, err := repository.GetGroupByName(db, groupname)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("group '%s' not found", groupname)
+			return fmt.Errorf("%w: group '%s' not found", ErrNotFound, groupname)
 		}
 		return err
 	}
 	user, err := repository.GetUserByName(db, username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("user '%s' not found", username)
+			return fmt.Errorf("%w: user '%s' not found", ErrNotFound, username)
 		}
 		return err
 	}
 	err = repository.AddMember(db, group.GroupID, user.UserID)
 	if err != nil {
+		if isDuplicateGroupMemberError(err) {
+			return fmt.Errorf("%w: user '%s' is already a member of group '%s'", ErrConflict, username, groupname)
+		}
 		return err
 	}
 	return nil
@@ -77,29 +94,29 @@ func RemoveMemberFromGroup(db *sql.DB, groupname string, username string) error 
 	username = strings.TrimSpace(username)
 
 	if groupname == "" {
-		return errors.New("group name cannot be empty")
+		return fmt.Errorf("%w: group name cannot be empty", ErrInvalidInput)
 	}
 	if username == "" {
-		return errors.New("username cannot be empty")
+		return fmt.Errorf("%w: username cannot be empty", ErrInvalidInput)
 	}
 	group, err := repository.GetGroupByName(db, groupname)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("group '%s' not found", groupname)
+			return fmt.Errorf("%w: group '%s' not found", ErrNotFound, groupname)
 		}
 		return err
 	}
 	user, err := repository.GetUserByName(db, username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("user '%s' not found", username)
+			return fmt.Errorf("%w: user '%s' not found", ErrNotFound, username)
 		}
 		return err
 	}
 	err = repository.RemoveMember(db, group.GroupID, user.UserID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("user '%s' is not a member of group '%s'", username, groupname)
+			return fmt.Errorf("%w: user '%s' is not a member of group '%s'", ErrConflict, username, groupname)
 		}
 		return err
 	}
@@ -109,12 +126,12 @@ func RemoveMemberFromGroup(db *sql.DB, groupname string, username string) error 
 func ListGroupMembers(db *sql.DB, groupname string) ([]models.User, error) {
 	groupname = strings.TrimSpace(groupname)
 	if groupname == "" {
-		return nil, errors.New("group name cannot be empty")
+		return nil, fmt.Errorf("%w: group name cannot be empty", ErrInvalidInput)
 	}
 	group, err := repository.GetGroupByName(db, groupname)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("group '%s' not found", groupname)
+			return nil, fmt.Errorf("%w: group '%s' not found", ErrNotFound, groupname)
 		}
 		return nil, err
 	}

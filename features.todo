@@ -9,3 +9,4 @@
 - Need to add Custom Errors
 - CLI layer should handle the no members in the group gracefully
 - Need to Use goroutine in the balance calculation
+- At the need to Replace http.ListenAndServe(":8080", router) in main.go with a custom http.Server that sets ReadHeaderTimeout, ReadTimeout, WriteTimeout, and IdleTimeout for production safety against slow clients.
