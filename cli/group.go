@@ -122,7 +122,7 @@ func init() {
 	groupCmd.AddCommand(DeleteGroupCmd)
 	groupCmd.AddCommand(AddMemberCmd)
 
-	CreateGroupCmd.Flags().StringP("groupname", "g","", "name for the new group")
+	CreateGroupCmd.Flags().StringP("groupname", "g", "", "name for the new group")
 	CreateGroupCmd.MarkFlagRequired("groupname")
 	GetGroupMembersCmd.Flags().StringP("groupname", "g", "", "group name")
 	GetGroupMembersCmd.MarkFlagRequired("groupname")

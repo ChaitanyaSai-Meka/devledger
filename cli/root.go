@@ -5,7 +5,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use: "devledger",
+	Use:   "devledger",
 	Short: "A developer expense splitting tool",
 }
 
