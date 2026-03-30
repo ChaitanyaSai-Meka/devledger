@@ -11,7 +11,7 @@ var groupCmd = &cobra.Command{
 	Short: "Manage groups",
 }
 
-var CreateGroupCmd = &cobra.Command{
+var createGroupCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a new group",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -30,7 +30,7 @@ var CreateGroupCmd = &cobra.Command{
 	},
 }
 
-var ListGroupCmd = &cobra.Command{
+var listGroupCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all groups",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -44,7 +44,7 @@ var ListGroupCmd = &cobra.Command{
 	},
 }
 
-var GetGroupMembersCmd = &cobra.Command{
+var getGroupMembersCmd = &cobra.Command{
 	Use:   "members",
 	Short: "List members of a group",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -59,7 +59,7 @@ var GetGroupMembersCmd = &cobra.Command{
 	},
 }
 
-var RemoveMemberCmd = &cobra.Command{
+var removeMemberCmd = &cobra.Command{
 	Use:   "remove-member",
 	Short: "Remove a member from a group",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -75,7 +75,7 @@ var RemoveMemberCmd = &cobra.Command{
 	},
 }
 
-var DeleteGroupCmd = &cobra.Command{
+var deleteGroupCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete a group",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -94,7 +94,7 @@ var DeleteGroupCmd = &cobra.Command{
 	},
 }
 
-var AddMemberCmd = &cobra.Command{
+var addMemberCmd = &cobra.Command{
 	Use:   "add-member",
 	Short: "Add a member to a group",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -115,25 +115,25 @@ var AddMemberCmd = &cobra.Command{
 }
 
 func init() {
-	groupCmd.AddCommand(CreateGroupCmd)
-	groupCmd.AddCommand(ListGroupCmd)
-	groupCmd.AddCommand(GetGroupMembersCmd)
-	groupCmd.AddCommand(RemoveMemberCmd)
-	groupCmd.AddCommand(DeleteGroupCmd)
-	groupCmd.AddCommand(AddMemberCmd)
+	groupCmd.AddCommand(createGroupCmd)
+	groupCmd.AddCommand(listGroupCmd)
+	groupCmd.AddCommand(getGroupMembersCmd)
+	groupCmd.AddCommand(removeMemberCmd)
+	groupCmd.AddCommand(deleteGroupCmd)
+	groupCmd.AddCommand(addMemberCmd)
 
-	CreateGroupCmd.Flags().StringP("groupname", "g", "", "name for the new group")
-	CreateGroupCmd.MarkFlagRequired("groupname")
-	GetGroupMembersCmd.Flags().StringP("groupname", "g", "", "group name")
-	GetGroupMembersCmd.MarkFlagRequired("groupname")
-	RemoveMemberCmd.Flags().StringP("groupname", "g", "", "group name")
-	RemoveMemberCmd.Flags().StringP("username", "u", "", "username to remove")
-	RemoveMemberCmd.MarkFlagRequired("groupname")
-	RemoveMemberCmd.MarkFlagRequired("username")
-	DeleteGroupCmd.Flags().StringP("groupname", "g", "", "group name to delete")
-	DeleteGroupCmd.MarkFlagRequired("groupname")
-	AddMemberCmd.Flags().StringP("groupname", "g", "", "group name")
-	AddMemberCmd.Flags().StringP("username", "u", "", "username to add")
-	AddMemberCmd.MarkFlagRequired("groupname")
-	AddMemberCmd.MarkFlagRequired("username")
+	createGroupCmd.Flags().StringP("groupname", "g", "", "name for the new group")
+	createGroupCmd.MarkFlagRequired("groupname")
+	getGroupMembersCmd.Flags().StringP("groupname", "g", "", "group name")
+	getGroupMembersCmd.MarkFlagRequired("groupname")
+	removeMemberCmd.Flags().StringP("groupname", "g", "", "group name")
+	removeMemberCmd.Flags().StringP("username", "u", "", "username to remove")
+	removeMemberCmd.MarkFlagRequired("groupname")
+	removeMemberCmd.MarkFlagRequired("username")
+	deleteGroupCmd.Flags().StringP("groupname", "g", "", "group name to delete")
+	deleteGroupCmd.MarkFlagRequired("groupname")
+	addMemberCmd.Flags().StringP("groupname", "g", "", "group name")
+	addMemberCmd.Flags().StringP("username", "u", "", "username to add")
+	addMemberCmd.MarkFlagRequired("groupname")
+	addMemberCmd.MarkFlagRequired("username")
 }
