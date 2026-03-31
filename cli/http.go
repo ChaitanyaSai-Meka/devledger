@@ -42,20 +42,20 @@ func doRequest(method string, url string, body io.Reader, contentType string) (*
 	return http.DefaultClient.Do(req)
 }
 
-func printResponse(resp *http.Response) {
+func printResponse(resp *http.Response) error {
 	var result map[string]any
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		fmt.Println("Error: failed to decode response:", err)
-		return
+		return fmt.Errorf("failed to decode response: %w", err)
 	}
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		data, err := json.MarshalIndent(result["data"], "", "  ")
 		if err != nil {
-			fmt.Println("Error: failed to format response data:", err)
-			return
+			return fmt.Errorf("failed to format response data: %w", err)
 		}
 		fmt.Println(string(data))
-	} else {
-		fmt.Println("Error:", result["error"])
+		return nil
 	}
+
+	fmt.Println("Error:", result["error"])
+	return fmt.Errorf("request failed with status %s", resp.Status)
 }

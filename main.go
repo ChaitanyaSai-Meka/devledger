@@ -35,9 +35,7 @@ func main() {
 		serverErrCh <- server.Serve(listener)
 	}()
 
-	if err := cli.Execute(); err != nil {
-		log.Fatal(err)
-	}
+	cliErr := cli.Execute()
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -47,5 +45,8 @@ func main() {
 
 	if err := <-serverErrCh; err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Server error: %v", err)
+	}
+	if cliErr != nil {
+		log.Fatal(cliErr)
 	}
 }

@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"net/url"
 
 	"github.com/spf13/cobra"
@@ -15,31 +14,35 @@ var balanceCmd = &cobra.Command{
 var groupBalanceCmd = &cobra.Command{
 	Use:   "group",
 	Short: "View group balances",
-	Run: func(cmd *cobra.Command, args []string) {
-		groupname, _ := cmd.Flags().GetString("groupname")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		groupname, err := cmd.Flags().GetString("groupname")
+		if err != nil {
+			return err
+		}
 		escapedgroupname := url.PathEscape(groupname)
 		resp, err := get("/groups/" + escapedgroupname + "/balance")
 		if err != nil {
-			fmt.Println("Error:", err)
-			return
+			return err
 		}
 		defer resp.Body.Close()
-		printResponse(resp)
+		return printResponse(resp)
 	},
 }
 
 var simplifyGroupBalanceCmd = &cobra.Command{
 	Use:   "simplify",
 	Short: "Simplify group balances",
-	Run: func(cmd *cobra.Command, args []string) {
-		groupname, _ := cmd.Flags().GetString("groupname")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		groupname, err := cmd.Flags().GetString("groupname")
+		if err != nil {
+			return err
+		}
 		resp, err := get("/groups/" + url.PathEscape(groupname) + "/balance/simplify")
 		if err != nil {
-			fmt.Println("Error:", err)
-			return
+			return err
 		}
 		defer resp.Body.Close()
-		printResponse(resp)
+		return printResponse(resp)
 	},
 }
 

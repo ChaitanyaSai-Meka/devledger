@@ -17,130 +17,155 @@ var expenseCmd = &cobra.Command{
 var addExpenseCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add an expense to a group",
-	Run: func(cmd *cobra.Command, args []string) {
-		groupname, _ := cmd.Flags().GetString("groupname")
-		description, _ := cmd.Flags().GetString("description")
-		amount, _ := cmd.Flags().GetString("amount")
-		paidby, _ := cmd.Flags().GetString("paidby")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		groupname, err := cmd.Flags().GetString("groupname")
+		if err != nil {
+			return err
+		}
+		description, err := cmd.Flags().GetString("description")
+		if err != nil {
+			return err
+		}
+		amount, err := cmd.Flags().GetString("amount")
+		if err != nil {
+			return err
+		}
+		paidby, err := cmd.Flags().GetString("paidby")
+		if err != nil {
+			return err
+		}
 		body, err := json.Marshal(map[string]string{
 			"description": description,
 			"amount":      amount,
 			"paid_by":     paidby,
 		})
 		if err != nil {
-			fmt.Println("Error:", err)
-			return
+			return err
 		}
 		resp, err := post("/groups/"+url.PathEscape(groupname)+"/expenses", string(body))
 		if err != nil {
-			fmt.Println("Error:", err)
-			return
+			return err
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode == 201 {
 			fmt.Println("Expense added successfully")
-		} else {
-			printResponse(resp)
+			return nil
 		}
+		return printResponse(resp)
 	},
 }
 
 var listExpensebyGroupCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List expenses in a group",
-	Run: func(cmd *cobra.Command, args []string) {
-		groupname, _ := cmd.Flags().GetString("groupname")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		groupname, err := cmd.Flags().GetString("groupname")
+		if err != nil {
+			return err
+		}
 		resp, err := get("/groups/" + url.PathEscape(groupname) + "/expenses")
 		if err != nil {
-			fmt.Println("Error:", err)
-			return
+			return err
 		}
 		defer resp.Body.Close()
-		printResponse(resp)
+		return printResponse(resp)
 	},
 }
 
 var listExpenseByUserCmd = &cobra.Command{
 	Use:   "list-by-user",
 	Short: "List expenses paid by a user",
-	Run: func(cmd *cobra.Command, args []string) {
-		username, _ := cmd.Flags().GetString("username")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		username, err := cmd.Flags().GetString("username")
+		if err != nil {
+			return err
+		}
 		resp, err := get("/users/" + url.PathEscape(username) + "/expenses")
 		if err != nil {
-			fmt.Println("Error:", err)
-			return
+			return err
 		}
 		defer resp.Body.Close()
-		printResponse(resp)
+		return printResponse(resp)
 	},
 }
 
 var deleteExpenseCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete an expense by ID",
-	Run: func(cmd *cobra.Command, args []string) {
-		expenseID, _ := cmd.Flags().GetInt("expenseid")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		expenseID, err := cmd.Flags().GetInt("expenseid")
+		if err != nil {
+			return err
+		}
 		resp, err := deleteReq("/expenses/" + strconv.Itoa(expenseID))
 		if err != nil {
-			fmt.Println("Error:", err)
-			return
+			return err
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode == 200 {
 			fmt.Println("Expense deleted successfully")
-		} else {
-			printResponse(resp)
+			return nil
 		}
+		return printResponse(resp)
 	},
 }
 
 var settleExpenseCmd = &cobra.Command{
 	Use:   "settle",
 	Short: "Settle an expense for a user",
-	Run: func(cmd *cobra.Command, args []string) {
-		expenseID, _ := cmd.Flags().GetInt("expenseid")
-		username, _ := cmd.Flags().GetString("username")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		expenseID, err := cmd.Flags().GetInt("expenseid")
+		if err != nil {
+			return err
+		}
+		username, err := cmd.Flags().GetString("username")
+		if err != nil {
+			return err
+		}
 		resp, err := post("/expenses/"+strconv.Itoa(expenseID)+"/settle/"+url.PathEscape(username), "")
 		if err != nil {
-			fmt.Println("Error:", err)
-			return
+			return err
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode == 200 {
 			fmt.Printf("Expense %d settled for user '%s'\n", expenseID, username)
-		} else {
-			printResponse(resp)
+			return nil
 		}
+		return printResponse(resp)
 	},
 }
 
 var listUnsettledSplitsCmd = &cobra.Command{
 	Use:   "unsettled",
 	Short: "List unsettled splits for a user",
-	Run: func(cmd *cobra.Command, args []string) {
-		username, _ := cmd.Flags().GetString("username")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		username, err := cmd.Flags().GetString("username")
+		if err != nil {
+			return err
+		}
 		resp, err := get("/users/" + url.PathEscape(username) + "/unsettled-splits")
 		if err != nil {
-			fmt.Println("Error:", err)
-			return
+			return err
 		}
 		defer resp.Body.Close()
-		printResponse(resp)
+		return printResponse(resp)
 	},
 }
 
 var expenseInDetailCmd = &cobra.Command{
 	Use:   "detail",
 	Short: "Get expense details by ID",
-	Run: func(cmd *cobra.Command, args []string) {
-		expenseID, _ := cmd.Flags().GetInt("expenseid")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		expenseID, err := cmd.Flags().GetInt("expenseid")
+		if err != nil {
+			return err
+		}
 		resp, err := get("/expenses/" + strconv.Itoa(expenseID) + "/detail")
 		if err != nil {
-			fmt.Println("Error:", err)
-			return
+			return err
 		}
 		defer resp.Body.Close()
-		printResponse(resp)
+		return printResponse(resp)
 	},
 }
 
