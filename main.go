@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -11,6 +12,21 @@ import (
 	"github.com/ChaitanyaSai-Meka/devledger/cli"
 	"github.com/ChaitanyaSai-Meka/devledger/db"
 )
+
+func waitForServer(url string, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		resp, err := http.Get(url)
+		if err == nil {
+			resp.Body.Close()
+			if resp.StatusCode == http.StatusOK {
+				return nil
+			}
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	return fmt.Errorf("server did not start within %v", timeout)
+}
 
 func main() {
 	log.SetFlags(0)
@@ -34,6 +50,19 @@ func main() {
 	go func() {
 		serverErrCh <- server.Serve(listener)
 	}()
+
+	if err := waitForServer("http://localhost:8080/health", 5*time.Second); err != nil {
+		cliErr := err
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := server.Shutdown(shutdownCtx); err != nil {
+			log.Printf("Error: failed to shut down server cleanly: %v", err)
+		}
+		if err := <-serverErrCh; err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server error: %v", err)
+		}
+		log.Fatal(cliErr)
+	}
 
 	cliErr := cli.Execute()
 

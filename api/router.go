@@ -10,6 +10,9 @@ import (
 
 func SetupRouter(db *sql.DB) http.Handler {
 	r := chi.NewRouter()
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
 
 	r.Post("/users", handler.CreateUserHandler(db))
 	r.Get("/users", handler.ListUsersHandler(db))
