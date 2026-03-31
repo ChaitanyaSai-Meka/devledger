@@ -1,0 +1,231 @@
+package cli
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/url"
+	"strconv"
+
+	"github.com/spf13/cobra"
+)
+
+var expenseCmd = &cobra.Command{
+	Use:   "expense",
+	Short: "Manage expenses",
+}
+
+var addExpenseCmd = &cobra.Command{
+	Use:   "add",
+	Short: "Add an expense to a group",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		groupname, err := cmd.Flags().GetString("groupname")
+		if err != nil {
+			return err
+		}
+		description, err := cmd.Flags().GetString("description")
+		if err != nil {
+			return err
+		}
+		amount, err := cmd.Flags().GetString("amount")
+		if err != nil {
+			return err
+		}
+		paidby, err := cmd.Flags().GetString("paidby")
+		if err != nil {
+			return err
+		}
+		body, err := json.Marshal(map[string]string{
+			"description": description,
+			"amount":      amount,
+			"paid_by":     paidby,
+		})
+		if err != nil {
+			return err
+		}
+		resp, err := post("/groups/"+url.PathEscape(groupname)+"/expenses", string(body))
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode == 201 {
+			fmt.Println("Expense added successfully")
+			return nil
+		}
+		return printResponse(resp)
+	},
+}
+
+var listExpensebyGroupCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List expenses in a group",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		groupname, err := cmd.Flags().GetString("groupname")
+		if err != nil {
+			return err
+		}
+		resp, err := get("/groups/" + url.PathEscape(groupname) + "/expenses")
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		return printResponse(resp)
+	},
+}
+
+var listExpenseByUserCmd = &cobra.Command{
+	Use:   "list-by-user",
+	Short: "List expenses paid by a user",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		username, err := cmd.Flags().GetString("username")
+		if err != nil {
+			return err
+		}
+		resp, err := get("/users/" + url.PathEscape(username) + "/expenses")
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		return printResponse(resp)
+	},
+}
+
+var deleteExpenseCmd = &cobra.Command{
+	Use:   "delete",
+	Short: "Delete an expense by ID",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		expenseID, err := cmd.Flags().GetInt("expenseid")
+		if err != nil {
+			return err
+		}
+		resp, err := deleteReq("/expenses/" + strconv.Itoa(expenseID))
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode == 200 {
+			fmt.Println("Expense deleted successfully")
+			return nil
+		}
+		return printResponse(resp)
+	},
+}
+
+var settleExpenseCmd = &cobra.Command{
+	Use:   "settle",
+	Short: "Settle an expense for a user",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		expenseID, err := cmd.Flags().GetInt("expenseid")
+		if err != nil {
+			return err
+		}
+		username, err := cmd.Flags().GetString("username")
+		if err != nil {
+			return err
+		}
+		resp, err := post("/expenses/"+strconv.Itoa(expenseID)+"/settle/"+url.PathEscape(username), "")
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode == 200 {
+			fmt.Printf("Expense %d settled for user '%s'\n", expenseID, username)
+			return nil
+		}
+		return printResponse(resp)
+	},
+}
+
+var listUnsettledSplitsCmd = &cobra.Command{
+	Use:   "unsettled",
+	Short: "List unsettled splits for a user",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		username, err := cmd.Flags().GetString("username")
+		if err != nil {
+			return err
+		}
+		resp, err := get("/users/" + url.PathEscape(username) + "/unsettled-splits")
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		return printResponse(resp)
+	},
+}
+
+var expenseInDetailCmd = &cobra.Command{
+	Use:   "detail",
+	Short: "Get expense details by ID",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		expenseID, err := cmd.Flags().GetInt("expenseid")
+		if err != nil {
+			return err
+		}
+		resp, err := get("/expenses/" + strconv.Itoa(expenseID) + "/detail")
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		return printResponse(resp)
+	},
+}
+
+func init() {
+	expenseCmd.AddCommand(addExpenseCmd)
+	expenseCmd.AddCommand(listExpensebyGroupCmd)
+	expenseCmd.AddCommand(listExpenseByUserCmd)
+	expenseCmd.AddCommand(deleteExpenseCmd)
+	expenseCmd.AddCommand(settleExpenseCmd)
+	expenseCmd.AddCommand(listUnsettledSplitsCmd)
+	expenseCmd.AddCommand(expenseInDetailCmd)
+
+	addExpenseCmd.Flags().StringP("groupname", "g", "", "group name")
+	addExpenseCmd.Flags().StringP("description", "d", "", "expense description")
+	addExpenseCmd.Flags().StringP("amount", "a", "", "expense amount")
+	addExpenseCmd.Flags().StringP("paidby", "p", "", "username who paid")
+	if err := addExpenseCmd.MarkFlagRequired("groupname"); err != nil {
+		panic(err)
+	}
+	if err := addExpenseCmd.MarkFlagRequired("description"); err != nil {
+		panic(err)
+	}
+	if err := addExpenseCmd.MarkFlagRequired("amount"); err != nil {
+		panic(err)
+	}
+	if err := addExpenseCmd.MarkFlagRequired("paidby"); err != nil {
+		panic(err)
+	}
+
+	listExpensebyGroupCmd.Flags().StringP("groupname", "g", "", "group name")
+	if err := listExpensebyGroupCmd.MarkFlagRequired("groupname"); err != nil {
+		panic(err)
+	}
+
+	listExpenseByUserCmd.Flags().StringP("username", "u", "", "username")
+	if err := listExpenseByUserCmd.MarkFlagRequired("username"); err != nil {
+		panic(err)
+	}
+
+	deleteExpenseCmd.Flags().IntP("expenseid", "e", 0, "expense ID")
+	if err := deleteExpenseCmd.MarkFlagRequired("expenseid"); err != nil {
+		panic(err)
+	}
+
+	settleExpenseCmd.Flags().IntP("expenseid", "e", 0, "expense ID")
+	settleExpenseCmd.Flags().StringP("username", "u", "", "username")
+	if err := settleExpenseCmd.MarkFlagRequired("expenseid"); err != nil {
+		panic(err)
+	}
+	if err := settleExpenseCmd.MarkFlagRequired("username"); err != nil {
+		panic(err)
+	}
+
+	listUnsettledSplitsCmd.Flags().StringP("username", "u", "", "username")
+	if err := listUnsettledSplitsCmd.MarkFlagRequired("username"); err != nil {
+		panic(err)
+	}
+
+	expenseInDetailCmd.Flags().IntP("expenseid", "e", 0, "expense ID")
+	if err := expenseInDetailCmd.MarkFlagRequired("expenseid"); err != nil {
+		panic(err)
+	}
+}
