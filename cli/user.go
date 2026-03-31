@@ -1,7 +1,9 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/url"
 
 	"github.com/spf13/cobra"
 )
@@ -16,7 +18,12 @@ var createUserCmd = &cobra.Command{
 	Short: "Create a user",
 	Run: func(cmd *cobra.Command, args []string) {
 		username, _ := cmd.Flags().GetString("username")
-		resp, err := post("/users", fmt.Sprintf(`{"username":"%s"}`, username))
+		body, err := json.Marshal(map[string]string{"username": username})
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		resp, err := post("/users", string(body))
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
@@ -30,7 +37,7 @@ var createUserCmd = &cobra.Command{
 	},
 }
 
-var ListUserCmd = &cobra.Command{
+var listUserCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all users",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -44,12 +51,12 @@ var ListUserCmd = &cobra.Command{
 	},
 }
 
-var GetUserGroupCmd = &cobra.Command{
+var getUserGroupCmd = &cobra.Command{
 	Use:   "groups",
 	Short: "List groups a user belongs to",
 	Run: func(cmd *cobra.Command, args []string) {
 		username, _ := cmd.Flags().GetString("username")
-		resp, err := get("/users/" + username + "/groups")
+		resp, err := get("/users/" + url.PathEscape(username) + "/groups")
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
@@ -59,12 +66,12 @@ var GetUserGroupCmd = &cobra.Command{
 	},
 }
 
-var DeleteUserCmd = &cobra.Command{
+var deleteUserCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete a user",
 	Run: func(cmd *cobra.Command, args []string) {
 		username, _ := cmd.Flags().GetString("username")
-		resp, err := deleteReq("/users/" + username)
+		resp, err := deleteReq("/users/" + url.PathEscape(username))
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
@@ -80,13 +87,19 @@ var DeleteUserCmd = &cobra.Command{
 
 func init() {
 	userCmd.AddCommand(createUserCmd)
-	userCmd.AddCommand(ListUserCmd)
-	userCmd.AddCommand(GetUserGroupCmd)
-	userCmd.AddCommand(DeleteUserCmd)
+	userCmd.AddCommand(listUserCmd)
+	userCmd.AddCommand(getUserGroupCmd)
+	userCmd.AddCommand(deleteUserCmd)
 	createUserCmd.Flags().StringP("username", "u", "", "username for the new user")
-	createUserCmd.MarkFlagRequired("username")
-	GetUserGroupCmd.Flags().StringP("username", "u", "", "username to list groups for")
-	GetUserGroupCmd.MarkFlagRequired("username")
-	DeleteUserCmd.Flags().StringP("username", "u", "", "username to delete")
-	DeleteUserCmd.MarkFlagRequired("username")
+	if err := createUserCmd.MarkFlagRequired("username"); err != nil {
+		panic(err)
+	}
+	getUserGroupCmd.Flags().StringP("username", "u", "", "username to list groups for")
+	if err := getUserGroupCmd.MarkFlagRequired("username"); err != nil {
+		panic(err)
+	}
+	deleteUserCmd.Flags().StringP("username", "u", "", "username to delete")
+	if err := deleteUserCmd.MarkFlagRequired("username"); err != nil {
+		panic(err)
+	}
 }

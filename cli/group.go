@@ -1,7 +1,9 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/url"
 
 	"github.com/spf13/cobra"
 )
@@ -16,7 +18,12 @@ var createGroupCmd = &cobra.Command{
 	Short: "Create a new group",
 	Run: func(cmd *cobra.Command, args []string) {
 		groupname, _ := cmd.Flags().GetString("groupname")
-		resp, err := post("/groups", fmt.Sprintf(`{"groupname":"%s"}`, groupname))
+		body, err := json.Marshal(map[string]string{"groupname": groupname})
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		resp, err := post("/groups", string(body))
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
@@ -49,7 +56,7 @@ var getGroupMembersCmd = &cobra.Command{
 	Short: "List members of a group",
 	Run: func(cmd *cobra.Command, args []string) {
 		groupname, _ := cmd.Flags().GetString("groupname")
-		resp, err := get("/groups/" + groupname + "/members")
+		resp, err := get("/groups/" + url.PathEscape(groupname) + "/members")
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
@@ -65,7 +72,7 @@ var removeMemberCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		groupname, _ := cmd.Flags().GetString("groupname")
 		username, _ := cmd.Flags().GetString("username")
-		resp, err := deleteReq("/groups/" + groupname + "/members/" + username)
+		resp, err := deleteReq("/groups/" + url.PathEscape(groupname) + "/members/" + url.PathEscape(username))
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
@@ -80,7 +87,7 @@ var deleteGroupCmd = &cobra.Command{
 	Short: "Delete a group",
 	Run: func(cmd *cobra.Command, args []string) {
 		groupname, _ := cmd.Flags().GetString("groupname")
-		resp, err := deleteReq("/groups/" + groupname)
+		resp, err := deleteReq("/groups/" + url.PathEscape(groupname))
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
@@ -100,7 +107,12 @@ var addMemberCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		groupname, _ := cmd.Flags().GetString("groupname")
 		username, _ := cmd.Flags().GetString("username")
-		resp, err := post("/groups/"+groupname+"/members", fmt.Sprintf(`{"username":"%s"}`, username))
+		body, err := json.Marshal(map[string]string{"username": username})
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		resp, err := post("/groups/"+url.PathEscape(groupname)+"/members", string(body))
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
@@ -123,17 +135,31 @@ func init() {
 	groupCmd.AddCommand(addMemberCmd)
 
 	createGroupCmd.Flags().StringP("groupname", "g", "", "name for the new group")
-	createGroupCmd.MarkFlagRequired("groupname")
+	if err := createGroupCmd.MarkFlagRequired("groupname"); err != nil {
+		panic(err)
+	}
 	getGroupMembersCmd.Flags().StringP("groupname", "g", "", "group name")
-	getGroupMembersCmd.MarkFlagRequired("groupname")
+	if err := getGroupMembersCmd.MarkFlagRequired("groupname"); err != nil {
+		panic(err)
+	}
 	removeMemberCmd.Flags().StringP("groupname", "g", "", "group name")
 	removeMemberCmd.Flags().StringP("username", "u", "", "username to remove")
-	removeMemberCmd.MarkFlagRequired("groupname")
-	removeMemberCmd.MarkFlagRequired("username")
+	if err := removeMemberCmd.MarkFlagRequired("groupname"); err != nil {
+		panic(err)
+	}
+	if err := removeMemberCmd.MarkFlagRequired("username"); err != nil {
+		panic(err)
+	}
 	deleteGroupCmd.Flags().StringP("groupname", "g", "", "group name to delete")
-	deleteGroupCmd.MarkFlagRequired("groupname")
+	if err := deleteGroupCmd.MarkFlagRequired("groupname"); err != nil {
+		panic(err)
+	}
 	addMemberCmd.Flags().StringP("groupname", "g", "", "group name")
 	addMemberCmd.Flags().StringP("username", "u", "", "username to add")
-	addMemberCmd.MarkFlagRequired("groupname")
-	addMemberCmd.MarkFlagRequired("username")
+	if err := addMemberCmd.MarkFlagRequired("groupname"); err != nil {
+		panic(err)
+	}
+	if err := addMemberCmd.MarkFlagRequired("username"); err != nil {
+		panic(err)
+	}
 }

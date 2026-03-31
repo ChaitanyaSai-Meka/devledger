@@ -2,8 +2,8 @@ package main
 
 import (
 	"log"
+	"net"
 	"net/http"
-	"time"
 
 	"github.com/ChaitanyaSai-Meka/devledger/api"
 	"github.com/ChaitanyaSai-Meka/devledger/cli"
@@ -20,13 +20,18 @@ func main() {
 	defer conn.Close()
 
 	router := api.SetupRouter(conn)
+
+	listener, err := net.Listen("tcp", ":8080")
+	if err != nil {
+		log.Fatalf("Error: failed to bind port 8080: %v", err)
+	}
+
 	go func() {
-		if err := http.ListenAndServe(":8080", router); err != nil {
+		if err := http.Serve(listener, router); err != nil {
 			log.Fatalf("Server error: %v", err)
 		}
 	}()
 
-	time.Sleep(100 * time.Millisecond)
 	if err := cli.Execute(); err != nil {
 		log.Fatal(err)
 	}

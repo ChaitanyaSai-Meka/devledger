@@ -1,9 +1,12 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/spf13/cobra"
+	"net/url"
 	"strconv"
+
+	"github.com/spf13/cobra"
 )
 
 var expenseCmd = &cobra.Command{
@@ -19,7 +22,16 @@ var addExpenseCmd = &cobra.Command{
 		description, _ := cmd.Flags().GetString("description")
 		amount, _ := cmd.Flags().GetString("amount")
 		paidby, _ := cmd.Flags().GetString("paidby")
-		resp, err := post("/groups/"+groupname+"/expenses", fmt.Sprintf(`{"description":"%s","amount":"%s","paid_by":"%s"}`, description, amount, paidby))
+		body, err := json.Marshal(map[string]string{
+			"description": description,
+			"amount":      amount,
+			"paid_by":     paidby,
+		})
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		resp, err := post("/groups/"+url.PathEscape(groupname)+"/expenses", string(body))
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
@@ -38,7 +50,7 @@ var listExpensebyGroupCmd = &cobra.Command{
 	Short: "List expenses in a group",
 	Run: func(cmd *cobra.Command, args []string) {
 		groupname, _ := cmd.Flags().GetString("groupname")
-		resp, err := get("/groups/" + groupname + "/expenses")
+		resp, err := get("/groups/" + url.PathEscape(groupname) + "/expenses")
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
@@ -53,7 +65,7 @@ var listExpenseByUserCmd = &cobra.Command{
 	Short: "List expenses paid by a user",
 	Run: func(cmd *cobra.Command, args []string) {
 		username, _ := cmd.Flags().GetString("username")
-		resp, err := get("/users/" + username + "/expenses")
+		resp, err := get("/users/" + url.PathEscape(username) + "/expenses")
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
@@ -88,7 +100,7 @@ var settleExpenseCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		expenseID, _ := cmd.Flags().GetInt("expenseid")
 		username, _ := cmd.Flags().GetString("username")
-		resp, err := post("/expenses/"+strconv.Itoa(expenseID)+"/settle/"+username, "")
+		resp, err := post("/expenses/"+strconv.Itoa(expenseID)+"/settle/"+url.PathEscape(username), "")
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
@@ -107,7 +119,7 @@ var listUnsettledSplitsCmd = &cobra.Command{
 	Short: "List unsettled splits for a user",
 	Run: func(cmd *cobra.Command, args []string) {
 		username, _ := cmd.Flags().GetString("username")
-		resp, err := get("/users/" + username + "/unsettled-splits")
+		resp, err := get("/users/" + url.PathEscape(username) + "/unsettled-splits")
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
@@ -145,28 +157,50 @@ func init() {
 	addExpenseCmd.Flags().StringP("description", "d", "", "expense description")
 	addExpenseCmd.Flags().StringP("amount", "a", "", "expense amount")
 	addExpenseCmd.Flags().StringP("paidby", "p", "", "username who paid")
-	addExpenseCmd.MarkFlagRequired("groupname")
-	addExpenseCmd.MarkFlagRequired("description")
-	addExpenseCmd.MarkFlagRequired("amount")
-	addExpenseCmd.MarkFlagRequired("paidby")
+	if err := addExpenseCmd.MarkFlagRequired("groupname"); err != nil {
+		panic(err)
+	}
+	if err := addExpenseCmd.MarkFlagRequired("description"); err != nil {
+		panic(err)
+	}
+	if err := addExpenseCmd.MarkFlagRequired("amount"); err != nil {
+		panic(err)
+	}
+	if err := addExpenseCmd.MarkFlagRequired("paidby"); err != nil {
+		panic(err)
+	}
 
 	listExpensebyGroupCmd.Flags().StringP("groupname", "g", "", "group name")
-	listExpensebyGroupCmd.MarkFlagRequired("groupname")
+	if err := listExpensebyGroupCmd.MarkFlagRequired("groupname"); err != nil {
+		panic(err)
+	}
 
 	listExpenseByUserCmd.Flags().StringP("username", "u", "", "username")
-	listExpenseByUserCmd.MarkFlagRequired("username")
+	if err := listExpenseByUserCmd.MarkFlagRequired("username"); err != nil {
+		panic(err)
+	}
 
 	deleteExpenseCmd.Flags().IntP("expenseid", "e", 0, "expense ID")
-	deleteExpenseCmd.MarkFlagRequired("expenseid")
+	if err := deleteExpenseCmd.MarkFlagRequired("expenseid"); err != nil {
+		panic(err)
+	}
 
 	settleExpenseCmd.Flags().IntP("expenseid", "e", 0, "expense ID")
 	settleExpenseCmd.Flags().StringP("username", "u", "", "username")
-	settleExpenseCmd.MarkFlagRequired("expenseid")
-	settleExpenseCmd.MarkFlagRequired("username")
+	if err := settleExpenseCmd.MarkFlagRequired("expenseid"); err != nil {
+		panic(err)
+	}
+	if err := settleExpenseCmd.MarkFlagRequired("username"); err != nil {
+		panic(err)
+	}
 
 	listUnsettledSplitsCmd.Flags().StringP("username", "u", "", "username")
-	listUnsettledSplitsCmd.MarkFlagRequired("username")
+	if err := listUnsettledSplitsCmd.MarkFlagRequired("username"); err != nil {
+		panic(err)
+	}
 
 	expenseInDetailCmd.Flags().IntP("expenseid", "e", 0, "expense ID")
-	expenseInDetailCmd.MarkFlagRequired("expenseid")
+	if err := expenseInDetailCmd.MarkFlagRequired("expenseid"); err != nil {
+		panic(err)
+	}
 }

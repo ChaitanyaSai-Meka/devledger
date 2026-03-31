@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/spf13/cobra"
 )
@@ -16,7 +17,8 @@ var groupBalanceCmd = &cobra.Command{
 	Short: "View group balances",
 	Run: func(cmd *cobra.Command, args []string) {
 		groupname, _ := cmd.Flags().GetString("groupname")
-		resp, err := get("/groups/" + groupname + "/balance")
+		escapedgroupname := url.PathEscape(groupname)
+		resp, err := get("/groups/" + escapedgroupname + "/balance")
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
@@ -31,7 +33,7 @@ var simplifyGroupBalanceCmd = &cobra.Command{
 	Short: "Simplify group balances",
 	Run: func(cmd *cobra.Command, args []string) {
 		groupname, _ := cmd.Flags().GetString("groupname")
-		resp, err := get("/groups/" + groupname + "/balance/simplify")
+		resp, err := get("/groups/" + url.PathEscape(groupname) + "/balance/simplify")
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
@@ -45,7 +47,11 @@ func init() {
 	balanceCmd.AddCommand(groupBalanceCmd)
 	balanceCmd.AddCommand(simplifyGroupBalanceCmd)
 	groupBalanceCmd.Flags().StringP("groupname", "g", "", "Name of the group")
-	groupBalanceCmd.MarkFlagRequired("groupname")
+	if err := groupBalanceCmd.MarkFlagRequired("groupname"); err != nil {
+		panic(err)
+	}
 	simplifyGroupBalanceCmd.Flags().StringP("groupname", "g", "", "Name of the group")
-	simplifyGroupBalanceCmd.MarkFlagRequired("groupname")
+	if err := simplifyGroupBalanceCmd.MarkFlagRequired("groupname"); err != nil {
+		panic(err)
+	}
 }
