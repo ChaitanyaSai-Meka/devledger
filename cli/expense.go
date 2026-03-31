@@ -61,7 +61,7 @@ var listExpensebyGroupCmd = &cobra.Command{
 }
 
 var listExpenseByUserCmd = &cobra.Command{
-	Use:   "listbyuser",
+	Use:   "list-by-user",
 	Short: "List expenses paid by a user",
 	Run: func(cmd *cobra.Command, args []string) {
 		username, _ := cmd.Flags().GetString("username")

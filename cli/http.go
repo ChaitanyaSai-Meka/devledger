@@ -49,7 +49,11 @@ func printResponse(resp *http.Response) {
 		return
 	}
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		data, _ := json.MarshalIndent(result["data"], "", "  ")
+		data, err := json.MarshalIndent(result["data"], "", "  ")
+		if err != nil {
+			fmt.Println("Error: failed to format response data:", err)
+			return
+		}
 		fmt.Println(string(data))
 	} else {
 		fmt.Println("Error:", result["error"])
