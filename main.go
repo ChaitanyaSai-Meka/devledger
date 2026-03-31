@@ -41,9 +41,9 @@ func main() {
 	server := &http.Server{Handler: router}
 	serverErrCh := make(chan error, 1)
 
-	listener, err := net.Listen("tcp", ":8080")
+	listener, err := net.Listen("tcp", ":38080")
 	if err != nil {
-		log.Fatalf("Error: failed to bind port 8080: %v", err)
+		log.Fatalf("Error: failed to bind port 38080: %v", err)
 	}
 	defer listener.Close()
 
@@ -51,7 +51,7 @@ func main() {
 		serverErrCh <- server.Serve(listener)
 	}()
 
-	if err := waitForServer("http://localhost:8080/health", 5*time.Second); err != nil {
+	if err := waitForServer("http://localhost:38080/health", 5*time.Second); err != nil {
 		cliErr := err
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
