@@ -1,33 +1,35 @@
 package models
 
 type User struct {
-	UserID    int    `json:"user_id"`
-	UserName  string `json:"username"`
-	DeletedAt string `json:"deleted_at,omitempty"`
+	UserID int
+	UserName string
 }
 
 type Group struct {
-	GroupID   int    `json:"group_id"`
-	GroupName string `json:"group_name"`
+	GroupID int
+	GroupName string
 }
 
 type GroupMember struct {
-	GroupID int `json:"group_id"`
-	UserID  int `json:"user_id"`
+	GroupID int
+	UserID int
 }
 
 type Expense struct {
-	ExpenseID    int64  `json:"expense_id"`
-	Amount       int64  `json:"amount"`
-	Description  string `json:"description"`
-	PaidByUserID int    `json:"paid_by_user_id"`
-	GroupID      int    `json:"group_id"`
-	CreatedAt    string `json:"created_at"`
+	ExpenseID int
+	Amount int64
+	Description string
+	PaidByUserID int
+	GroupID int
+	CreatedAt string
 }
 
 type Split struct {
-	ExpenseID int64 `json:"expense_id"`
-	UserID    int   `json:"user_id"`
-	Amount    int64 `json:"amount"`
-	Settled   bool  `json:"settled"`
+	ExpenseID int
+	UserID int
+	Amount int64
+	Settled bool
 }
+
+
+
