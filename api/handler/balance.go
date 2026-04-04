@@ -30,7 +30,7 @@ func CalculateBalanceHandler(db *sql.DB) http.HandlerFunc {
 			}
 			return
 		}
-		respond.WriteOK(w, balance)
+		respond.WriteOK(w, service.FormatBalances(balance))
 	}
 }
 
@@ -54,6 +54,6 @@ func SimplifyDebtHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 		simplifiedDebts := service.SimplifyDebts(balance)
-		respond.WriteOK(w, simplifiedDebts)
+		respond.WriteOK(w, service.FormatTransactions(simplifiedDebts))
 	}
 }

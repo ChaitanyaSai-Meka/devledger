@@ -101,7 +101,7 @@ func AddExpense(db *sql.DB, groupname string, description string, paidbyusername
 	return tx.Commit()
 }
 
-func ListExpensesByGroup(db *sql.DB, groupname string) ([]models.Expense, error) {
+func ListExpensesByGroup(db *sql.DB, groupname string) ([]models.ExpenseView, error) {
 	groupname = strings.TrimSpace(groupname)
 	if groupname == "" {
 		return nil, fmt.Errorf("%w: group name cannot be empty", ErrInvalidInput)
@@ -117,10 +117,12 @@ func ListExpensesByGroup(db *sql.DB, groupname string) ([]models.Expense, error)
 	if err != nil {
 		return nil, err
 	}
-	return expenses, nil
+	return buildExpenseViews(db, expenses, map[int]string{
+		group.GroupID: group.GroupName,
+	})
 }
 
-func ListExpensesByUser(db *sql.DB, username string) ([]models.Expense, error) {
+func ListExpensesByUser(db *sql.DB, username string) ([]models.ExpenseView, error) {
 	username = strings.TrimSpace(username)
 	if username == "" {
 		return nil, fmt.Errorf("%w: username cannot be empty", ErrInvalidInput)
@@ -136,7 +138,7 @@ func ListExpensesByUser(db *sql.DB, username string) ([]models.Expense, error) {
 	if err != nil {
 		return nil, err
 	}
-	return expenses, nil
+	return buildExpenseViews(db, expenses, nil)
 }
 
 func DeleteExpense(db *sql.DB, expenseID int64) error {
@@ -172,7 +174,7 @@ func SettleExpense(db *sql.DB, expenseID int64, username string) error {
 	return nil
 }
 
-func ListUnsettledSplits(db *sql.DB, username string) ([]models.Split, error) {
+func ListUnsettledSplits(db *sql.DB, username string) ([]models.SplitView, error) {
 	username = strings.TrimSpace(username)
 	if username == "" {
 		return nil, fmt.Errorf("%w: username cannot be empty", ErrInvalidInput)
@@ -188,37 +190,101 @@ func ListUnsettledSplits(db *sql.DB, username string) ([]models.Split, error) {
 	if err != nil {
 		return nil, err
 	}
-	return splits, nil
+	return buildSplitViews(splits), nil
 }
 
-func GetExpenseInDetail(db *sql.DB, expenseID int64) (models.ExpenseDetail, error) {
+func GetExpenseInDetail(db *sql.DB, expenseID int64) (models.ExpenseDetailView, error) {
 	expense, err := repository.GetExpenseByID(db, expenseID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return models.ExpenseDetail{}, fmt.Errorf("%w: expense with ID %d not found", ErrNotFound, expenseID)
+			return models.ExpenseDetailView{}, fmt.Errorf("%w: expense with ID %d not found", ErrNotFound, expenseID)
 		}
-		return models.ExpenseDetail{}, err
+		return models.ExpenseDetailView{}, err
 	}
 	user, err := repository.GetUserByIDIncludingDeleted(db, expense.PaidByUserID)
 	if err != nil {
-		return models.ExpenseDetail{}, err
+		return models.ExpenseDetailView{}, err
 	}
 	group, err := repository.GetGroupByID(db, expense.GroupID)
 	if err != nil {
-		return models.ExpenseDetail{}, err
+		return models.ExpenseDetailView{}, err
 	}
 
 	splitsDetails, err := repository.GetSplitsWithUsersByExpenseID(db, expenseID)
 	if err != nil {
-		return models.ExpenseDetail{}, err
+		return models.ExpenseDetailView{}, err
 	}
-	details := models.ExpenseDetail{
+	details := models.ExpenseDetailView{
 		Description: expense.Description,
-		Amount:      expense.Amount,
+		Amount:      money.FormatFromMinorUnit(expense.Amount),
 		PaidBy:      user.UserName,
 		GroupName:   group.GroupName,
 		CreatedAt:   expense.CreatedAt,
-		Splits:      splitsDetails,
+		Splits:      buildSplitDetailViews(splitsDetails),
 	}
 	return details, nil
+}
+
+func buildExpenseViews(db *sql.DB, expenses []models.Expense, groupNames map[int]string) ([]models.ExpenseView, error) {
+	userNames := make(map[int]string)
+	if groupNames == nil {
+		groupNames = make(map[int]string)
+	}
+	views := make([]models.ExpenseView, 0, len(expenses))
+	for _, expense := range expenses {
+		paidBy, ok := userNames[expense.PaidByUserID]
+		if !ok {
+			user, err := repository.GetUserByIDIncludingDeleted(db, expense.PaidByUserID)
+			if err != nil {
+				return nil, err
+			}
+			paidBy = user.UserName
+			userNames[expense.PaidByUserID] = paidBy
+		}
+
+		groupName, ok := groupNames[expense.GroupID]
+		if !ok {
+			group, err := repository.GetGroupByID(db, expense.GroupID)
+			if err != nil {
+				return nil, err
+			}
+			groupName = group.GroupName
+			groupNames[expense.GroupID] = groupName
+		}
+
+		views = append(views, models.ExpenseView{
+			ExpenseID:   expense.ExpenseID,
+			Amount:      money.FormatFromMinorUnit(expense.Amount),
+			Description: expense.Description,
+			PaidBy:      paidBy,
+			GroupName:   groupName,
+			CreatedAt:   expense.CreatedAt,
+		})
+	}
+	return views, nil
+}
+
+func buildSplitViews(splits []models.Split) []models.SplitView {
+	views := make([]models.SplitView, 0, len(splits))
+	for _, split := range splits {
+		views = append(views, models.SplitView{
+			ExpenseID: split.ExpenseID,
+			UserID:    split.UserID,
+			Amount:    money.FormatFromMinorUnit(split.Amount),
+			Settled:   split.Settled,
+		})
+	}
+	return views
+}
+
+func buildSplitDetailViews(splits []models.SplitDetail) []models.SplitDetailView {
+	views := make([]models.SplitDetailView, 0, len(splits))
+	for _, split := range splits {
+		views = append(views, models.SplitDetailView{
+			UserName: split.UserName,
+			Amount:   money.FormatFromMinorUnit(split.Amount),
+			Settled:  split.Settled,
+		})
+	}
+	return views
 }
