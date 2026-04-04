@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/ChaitanyaSai-Meka/devledger/models"
+	"github.com/ChaitanyaSai-Meka/devledger/money"
 	"github.com/ChaitanyaSai-Meka/devledger/repository"
 )
 
@@ -99,4 +100,27 @@ func SimplifyDebts(balances []models.UserBalance) []models.Transaction {
 		}
 	}
 	return transactions
+}
+
+func FormatBalances(balances []models.UserBalance) []models.UserBalanceView {
+	views := make([]models.UserBalanceView, 0, len(balances))
+	for _, balance := range balances {
+		views = append(views, models.UserBalanceView{
+			User:       balance.User,
+			NetBalance: money.FormatFromMinorUnit(balance.NetBalance),
+		})
+	}
+	return views
+}
+
+func FormatTransactions(transactions []models.Transaction) []models.TransactionView {
+	views := make([]models.TransactionView, 0, len(transactions))
+	for _, transaction := range transactions {
+		views = append(views, models.TransactionView{
+			From:   transaction.From,
+			To:     transaction.To,
+			Amount: money.FormatFromMinorUnit(transaction.Amount),
+		})
+	}
+	return views
 }
