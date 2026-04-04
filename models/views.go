@@ -1,12 +1,12 @@
 package models
 
 type ExpenseView struct {
-	ExpenseID    int64  `json:"expense_id"`
-	Amount       string `json:"amount"`
-	Description  string `json:"description"`
-	PaidByUserID int    `json:"paid_by_user_id"`
-	GroupID      int    `json:"group_id"`
-	CreatedAt    string `json:"created_at"`
+	ExpenseID   int64  `json:"expense_id"`
+	Amount      string `json:"amount"`
+	Description string `json:"description"`
+	PaidBy      string `json:"paid_by"`
+	GroupName   string `json:"group_name"`
+	CreatedAt   string `json:"created_at"`
 }
 
 type SplitView struct {

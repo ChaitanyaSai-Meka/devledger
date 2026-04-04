@@ -117,7 +117,7 @@ func ListExpensesByGroup(db *sql.DB, groupname string) ([]models.ExpenseView, er
 	if err != nil {
 		return nil, err
 	}
-	return buildExpenseViews(expenses), nil
+	return buildExpenseViews(db, expenses)
 }
 
 func ListExpensesByUser(db *sql.DB, username string) ([]models.ExpenseView, error) {
@@ -136,7 +136,7 @@ func ListExpensesByUser(db *sql.DB, username string) ([]models.ExpenseView, erro
 	if err != nil {
 		return nil, err
 	}
-	return buildExpenseViews(expenses), nil
+	return buildExpenseViews(db, expenses)
 }
 
 func DeleteExpense(db *sql.DB, expenseID int64) error {
@@ -223,19 +223,41 @@ func GetExpenseInDetail(db *sql.DB, expenseID int64) (models.ExpenseDetailView, 
 	return details, nil
 }
 
-func buildExpenseViews(expenses []models.Expense) []models.ExpenseView {
+func buildExpenseViews(db *sql.DB, expenses []models.Expense) ([]models.ExpenseView, error) {
+	userNames := make(map[int]string)
+	groupNames := make(map[int]string)
 	views := make([]models.ExpenseView, 0, len(expenses))
 	for _, expense := range expenses {
+		paidBy, ok := userNames[expense.PaidByUserID]
+		if !ok {
+			user, err := repository.GetUserByIDIncludingDeleted(db, expense.PaidByUserID)
+			if err != nil {
+				return nil, err
+			}
+			paidBy = user.UserName
+			userNames[expense.PaidByUserID] = paidBy
+		}
+
+		groupName, ok := groupNames[expense.GroupID]
+		if !ok {
+			group, err := repository.GetGroupByID(db, expense.GroupID)
+			if err != nil {
+				return nil, err
+			}
+			groupName = group.GroupName
+			groupNames[expense.GroupID] = groupName
+		}
+
 		views = append(views, models.ExpenseView{
-			ExpenseID:    expense.ExpenseID,
-			Amount:       money.FormatFromMinorUnit(expense.Amount),
-			Description:  expense.Description,
-			PaidByUserID: expense.PaidByUserID,
-			GroupID:      expense.GroupID,
-			CreatedAt:    expense.CreatedAt,
+			ExpenseID:   expense.ExpenseID,
+			Amount:      money.FormatFromMinorUnit(expense.Amount),
+			Description: expense.Description,
+			PaidBy:      paidBy,
+			GroupName:   groupName,
+			CreatedAt:   expense.CreatedAt,
 		})
 	}
-	return views
+	return views, nil
 }
 
 func buildSplitViews(splits []models.Split) []models.SplitView {
