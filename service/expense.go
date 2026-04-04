@@ -117,7 +117,9 @@ func ListExpensesByGroup(db *sql.DB, groupname string) ([]models.ExpenseView, er
 	if err != nil {
 		return nil, err
 	}
-	return buildExpenseViews(db, expenses)
+	return buildExpenseViews(db, expenses, map[int]string{
+		group.GroupID: group.GroupName,
+	})
 }
 
 func ListExpensesByUser(db *sql.DB, username string) ([]models.ExpenseView, error) {
@@ -136,7 +138,7 @@ func ListExpensesByUser(db *sql.DB, username string) ([]models.ExpenseView, erro
 	if err != nil {
 		return nil, err
 	}
-	return buildExpenseViews(db, expenses)
+	return buildExpenseViews(db, expenses, nil)
 }
 
 func DeleteExpense(db *sql.DB, expenseID int64) error {
@@ -223,9 +225,11 @@ func GetExpenseInDetail(db *sql.DB, expenseID int64) (models.ExpenseDetailView, 
 	return details, nil
 }
 
-func buildExpenseViews(db *sql.DB, expenses []models.Expense) ([]models.ExpenseView, error) {
+func buildExpenseViews(db *sql.DB, expenses []models.Expense, groupNames map[int]string) ([]models.ExpenseView, error) {
 	userNames := make(map[int]string)
-	groupNames := make(map[int]string)
+	if groupNames == nil {
+		groupNames = make(map[int]string)
+	}
 	views := make([]models.ExpenseView, 0, len(expenses))
 	for _, expense := range expenses {
 		paidBy, ok := userNames[expense.PaidByUserID]
