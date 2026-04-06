@@ -10,8 +10,11 @@ import (
 var schemaSQL string
 
 func ConnectDB() (*sql.DB, error) {
-	conn, err := sql.Open("sqlite", "./devledger.db")
+	return connectDB("./devledger.db")
+}
 
+func connectDB(path string) (*sql.DB, error) {
+	conn, err := sql.Open("sqlite", path)
 	if err != nil {
 		return nil, err
 	}

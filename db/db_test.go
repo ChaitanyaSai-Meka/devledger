@@ -1,29 +1,38 @@
 package db
 
 import (
-	"os"
+	"database/sql"
+	"path/filepath"
 	"testing"
 )
 
-func TestConnectDB(t *testing.T) {
-	conn, err := ConnectDB()
+func openTestDB(t *testing.T) *sql.DB {
+	t.Helper()
+
+	dbPath := filepath.Join(t.TempDir(), "devledger.db")
+	conn, err := connectDB(dbPath)
 	if err != nil {
-		t.Fatalf("ConnectDB failed: %v", err)
+		t.Fatalf("connectDB failed: %v", err)
 	}
-	defer os.Remove("./devledger.db")
-	defer conn.Close()
+
+	t.Cleanup(func() {
+		if err := conn.Close(); err != nil {
+			t.Errorf("failed to close test database: %v", err)
+		}
+	})
+
+	return conn
+}
+
+func TestConnectDB(t *testing.T) {
+	openTestDB(t)
 }
 
 func TestForeignKeysEnabled(t *testing.T) {
-	conn, err := ConnectDB()
-	if err != nil {
-		t.Fatalf("ConnectDB failed: %v", err)
-	}
-	defer os.Remove("./devledger.db")
-	defer conn.Close()
+	conn := openTestDB(t)
 
 	var enabled int
-	err = conn.QueryRow("PRAGMA foreign_keys;").Scan(&enabled)
+	err := conn.QueryRow("PRAGMA foreign_keys;").Scan(&enabled)
 	if err != nil {
 		t.Fatalf("failed to check foreign_keys pragma: %v", err)
 	}
@@ -33,27 +42,32 @@ func TestForeignKeysEnabled(t *testing.T) {
 	}
 }
 
-func TestUsersTableCreated(t *testing.T) {
-	conn, err := ConnectDB()
-	if err != nil {
-		t.Fatalf("ConnectDB failed: %v", err)
-	}
-	defer os.Remove("./devledger.db")
-	defer conn.Close()
+func TestSchemaTablesCreated(t *testing.T) {
+	conn := openTestDB(t)
 
-	var count int
+	expectedTables := []string{
+		"Users",
+		"Groups",
+		"GroupMembers",
+		"Expenses",
+		"Splits",
+	}
+
 	query := `
 		SELECT COUNT(*)
 		FROM sqlite_master
-		WHERE type='table' AND name='Users'
+		WHERE type='table' AND name=?
 	`
 
-	err = conn.QueryRow(query).Scan(&count)
-	if err != nil {
-		t.Fatalf("failed to check Users table: %v", err)
-	}
+	for _, tableName := range expectedTables {
+		var count int
+		err := conn.QueryRow(query, tableName).Scan(&count)
+		if err != nil {
+			t.Fatalf("failed to check %s table: %v", tableName, err)
+		}
 
-	if count != 1 {
-		t.Fatalf("expected Users table to exist, got count = %d", count)
+		if count != 1 {
+			t.Fatalf("expected %s table to exist, got count = %d", tableName, count)
+		}
 	}
 }
