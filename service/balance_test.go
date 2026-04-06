@@ -44,17 +44,10 @@ func TestSimplifyDebts(t *testing.T) {
 		}
 
 		transactions := SimplifyDebts(balances)
-		if len(transactions) != 2 {
-			t.Fatalf("expected 2 transactions, got %d", len(transactions))
-		}
-
-		var total int64
-		for _, tx := range transactions {
-			total += tx.Amount
-		}
-		if total != 1000 {
-			t.Fatalf("expected total 1000, got %d", total)
-		}
+		assertTransactions(t, transactions, []transactionExpectation{
+			{from: "B", to: "A", amount: 600},
+			{from: "C", to: "A", amount: 400},
+		})
 	})
 
 	t.Run("simulation", func(t *testing.T) {
