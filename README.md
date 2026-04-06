@@ -1,15 +1,15 @@
 # DevLedger
 
-A local-first CLI tool for tracking and splitting shared infrastructure costs among developer teams. No cloud, no setup — runs entirely on your machine.
+A local-first CLI tool for tracking and splitting shared infrastructure costs among developer teams. No cloud, no setup - runs entirely on your machine.
 
 ## Installation
 
-### Option 1 — Install directly
+### Option 1 - Install directly
 ```bash
 go install github.com/ChaitanyaSai-Meka/devledger@latest
 ```
 
-### Option 2 — Build from source
+### Option 2 - Build from source
 ```bash
 git clone https://github.com/ChaitanyaSai-Meka/devledger
 cd devledger
@@ -36,7 +36,7 @@ devledger expense add --groupname "backend-team" --description "AWS Bill" --amou
 # View balances
 devledger balance group --groupname "backend-team"
 
-# Settle up
+# Get suggested settlements
 devledger balance simplify --groupname "backend-team"
 ```
 
@@ -64,7 +64,7 @@ devledger group remove-member --groupname <name> --username <name>
 ```bash
 devledger expense add --groupname <name> --description <desc> --amount <amount> --paidby <name>
 devledger expense list --groupname <name>
-devledger expense listbyuser --username <name>
+devledger expense list-by-user --username <name>
 devledger expense detail --expenseid <id>
 devledger expense delete --expenseid <id>
 devledger expense settle --expenseid <id> --username <name>
@@ -81,7 +81,7 @@ devledger balance simplify --groupname <name>
 ```
 CLI commands
     ↓ HTTP calls
-REST API (localhost:8080)
+REST API (localhost:38080)
     ↓
 Service Layer (business logic)
     ↓
@@ -109,13 +109,13 @@ Internally stored in paise to avoid floating-point precision issues.
 - Partial payment tracking
 - Edit expense description and amount
 - Database migrations using golang-migrate
-- Idle timeout — auto shutdown server after inactivity
+- Idle timeout - auto shutdown server after inactivity
 - Multi-currency support
 
 ## Tech Stack
 
-- **Language** — Go
-- **Router** — Chi
-- **CLI** — Cobra
-- **Database** — SQLite (modernc.org/sqlite — pure Go, no CGo)
-- **Money parsing** — shopspring/decimal
+- **Language** - Go
+- **Router** - Chi
+- **CLI** - Cobra
+- **Database** - SQLite (modernc.org/sqlite - pure Go, no CGo)
+- **Money parsing** - shopspring/decimal
