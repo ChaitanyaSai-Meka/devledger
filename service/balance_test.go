@@ -36,7 +36,7 @@ func TestSimplifyDebts(t *testing.T) {
 		})
 	})
 
-	t.Run("single debtor single creditor unequal", func(t *testing.T) {
+	t.Run("single creditor two debtors unequal", func(t *testing.T) {
 		balances := []models.UserBalance{
 			newBalance("A", 1000),
 			newBalance("B", -600),
