@@ -7,7 +7,7 @@ DevLedger is a local-first CLI + REST API tool for tracking and splitting shared
 ---
 
 ## Architecture
-```
+```text
 CLI (Cobra)
     ↓ HTTP calls (localhost:38080)
 API Layer (Chi router + handlers)

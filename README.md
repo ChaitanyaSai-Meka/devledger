@@ -94,11 +94,12 @@ The server starts automatically on the first command and shuts down when done.
 
 ## Amount Format
 
-All amounts are entered in rupees with up to 2 decimal places:
+All amounts are entered in rupees. Values with 0-2 decimal places are typical, and values with additional decimal places are accepted and rounded to the nearest paise:
 ```bash
---amount "30.00"   # ₹30.00
---amount "1500"    # ₹1500.00
---amount "99.99"   # ₹99.99
+--amount "30.00"    # ₹30.00
+--amount "1500"     # ₹1500.00
+--amount "99.99"    # ₹99.99
+--amount "10.999"   # rounded to ₹11.00
 ```
 
 Internally stored in paise to avoid floating-point precision issues.
