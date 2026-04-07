@@ -61,7 +61,7 @@ The core algorithm simplifies debts and reduces the number of transactions neede
 **Approach — Greedy net balance:**
 
 1. Compute net balance per member:
-```
+```text
 netBalance = totalPaid - totalOwed
 positive → creditor (is owed money)
 negative → debtor (owes money)
@@ -70,7 +70,7 @@ negative → debtor (owes money)
 2. Sort creditors and debtors by amount (highest first)
 
 3. Greedily match largest debtor with largest creditor:
-```
+```text
 transfer = min(debtor.amount, creditor.amount)
 reduce both by transfer amount
 advance pointer of whichever reaches zero
@@ -89,7 +89,7 @@ The theoretically optimal minimum transaction problem is NP-hard. The greedy app
 When adding an expense, two tables are written to — `Expenses` and `Splits`. If split creation fails halfway, the expense would exist without complete splits, corrupting balance calculations.
 
 Solved using a database transaction:
-```
+```text
 BEGIN TRANSACTION
   INSERT INTO Expenses → get expenseID
   INSERT INTO Splits × N members
@@ -105,7 +105,7 @@ Either all splits are created or none are — the DB stays consistent.
 Two functions originally had N+1 query patterns:
 
 **`GetExpenseInDetail`** — originally fetched username per split in a loop:
-```
+```text
 1 query → get splits
 N queries → get username per split
 ```
@@ -119,7 +119,7 @@ WHERE s.ExpenseID = ?
 ```
 
 **`CalculateBalances`** — originally fetched splits per expense in a loop:
-```
+```text
 1 query → get expenses
 N queries → get splits per expense
 ```
