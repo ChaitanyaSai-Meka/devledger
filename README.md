@@ -90,7 +90,7 @@ Repository Layer (DB queries)
 SQLite (devledger.db)
 ```
 
-The server starts automatically on the first command and shuts down when done.
+For each `devledger ...` command you run, the local server starts automatically, handles that command's work, and then shuts down when the command finishes.
 
 ## Amount Format
 
