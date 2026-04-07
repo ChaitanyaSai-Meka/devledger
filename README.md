@@ -78,7 +78,7 @@ devledger balance simplify --groupname <name>
 ```
 
 ## How it Works
-```
+```text
 CLI commands
     ↓ HTTP calls
 REST API (localhost:38080)
@@ -110,7 +110,7 @@ Internally stored in paise to avoid floating-point precision issues.
 - Partial payment tracking
 - Edit expense description and amount
 - Database migrations using golang-migrate
-- Idle timeout - auto shutdown server after inactivity
+- Idle timeout - automatically shut down the server after inactivity
 - Multi-currency support
 
 ## Tech Stack

@@ -197,6 +197,6 @@ The second condition is redundant in normal flow since payer splits are always a
 - Partial payment tracking
 - Edit expense description and amount
 - Database migrations using `golang-migrate`
-- Idle timeout — auto shutdown server after inactivity
+- Idle timeout — automatically shut down the server after inactivity
 - Multi-currency support
 - SQLite error code checking instead of string matching
