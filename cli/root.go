@@ -2,17 +2,19 @@ package cli
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
-	Use:          "devledger",
-	Short:        "A developer expense splitting tool",
-	SilenceUsage: true,
+	Use:   "devledger",
+	Short: "A developer expense splitting tool",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		_, err := fmt.Fprint(cmd.OutOrStdout(), renderLandingScreen())
+		out := cmd.OutOrStdout()
+		_, err := fmt.Fprint(out, renderLandingScreen(supportsColor(out)))
 		return err
 	},
 }
@@ -28,19 +30,44 @@ func init() {
 	rootCmd.AddCommand(balanceCmd)
 }
 
-func renderLandingScreen() string {
-	const (
-		reset = "\033[0m"
-		bold  = "\033[1m"
-		dim   = "\033[2m"
+func supportsColor(w io.Writer) bool {
+	if os.Getenv("NO_COLOR") != "" {
+		return false
+	}
 
-		teal  = "\033[38;5;44m"
-		mint  = "\033[38;5;86m"
-		gold  = "\033[38;5;221m"
+	file, ok := w.(*os.File)
+	if !ok {
+		return false
+	}
+
+	info, err := file.Stat()
+	if err != nil {
+		return false
+	}
+
+	return info.Mode()&os.ModeCharDevice != 0
+}
+
+func renderLandingScreen(useColor bool) string {
+	reset := ""
+	bold := ""
+	teal := ""
+	mint := ""
+	gold := ""
+	coral := ""
+	slate := ""
+	sky := ""
+
+	if useColor {
+		reset = "\033[0m"
+		bold = "\033[1m"
+		teal = "\033[38;5;44m"
+		mint = "\033[38;5;86m"
+		gold = "\033[38;5;221m"
 		coral = "\033[38;5;209m"
 		slate = "\033[38;5;245m"
-		sky   = "\033[38;5;117m"
-	)
+		sky = "\033[38;5;117m"
+	}
 
 	var b strings.Builder
 
@@ -105,11 +132,6 @@ func renderLandingScreen() string {
 		fmt.Sprintf("Run %sdevledger <command> --help%s for command-specific options", bold, reset),
 		fmt.Sprintf("Example: %sdevledger expense --help%s", bold, reset),
 	})
-
-	b.WriteString(dim)
-	b.WriteString("Server: http://localhost:38080")
-	b.WriteString(reset)
-	b.WriteString("\n")
 
 	return b.String()
 }
