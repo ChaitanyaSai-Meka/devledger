@@ -99,7 +99,7 @@ func renderLandingScreen(useColor bool) string {
 	b.WriteString(reset)
 	b.WriteString("  ")
 	b.WriteString(slate)
-	b.WriteString("Local-first expense tracking for developer teams")
+	b.WriteString("Local expense tracking for developer teams")
 	b.WriteString(reset)
 	b.WriteString("\n")
 	writeRule(teal)
