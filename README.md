@@ -9,12 +9,33 @@ A local-first CLI tool for tracking and splitting shared infrastructure costs am
 go install github.com/ChaitanyaSai-Meka/devledger@latest
 ```
 
+If `devledger` is not found after install, make sure Go's bin directory is on your `PATH`:
+
+```bash
+echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+Verify the install:
+
+```bash
+which devledger
+devledger --help
+```
+
 ### Option 2 - Build from source
 ```bash
 git clone https://github.com/ChaitanyaSai-Meka/devledger
 cd devledger
 go build -o devledger .
 sudo mv devledger /usr/local/bin/
+```
+
+Verify the install:
+
+```bash
+which devledger
+devledger --help
 ```
 
 ## Quick Start
